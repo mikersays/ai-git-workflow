@@ -1,0 +1,3398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Field Guide to Git — for builders coding with Claude</title>
+<meta name="description" content="A beginner's field guide to git, GitHub & shipping safely while you build with Claude Code. Zero to hero, no jargon, no shame." />
+<meta property="og:title" content="The Field Guide to Git" />
+<meta property="og:description" content="A beginner's field guide to git, GitHub & shipping safely while you build with Claude Code." />
+<meta property="og:type" content="website" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet" />
+
+<style>
+/* ════════════════════════════════════════════════════════════════
+   THE FIELD GUIDE TO GIT  —  v2
+   Pragmatic-but-warm. Whole Earth Catalog × workshop manual ×
+   1970s naturalist field guide. Cream paper, rust ink, gold accent.
+   ════════════════════════════════════════════════════════════════ */
+
+:root {
+  --paper:       #f1ebdc;
+  --paper-deep:  #e7dec6;
+  --paper-edge:  #d8cdb1;
+  --paper-soft:  #ede5d2;
+  --ink:         #1c1611;
+  --ink-soft:    #3a2f23;
+  --ink-fade:    #6a5b48;
+  --rust:        #b1421a;
+  --rust-deep:   #882f0f;
+  --rust-soft:   rgba(177, 66, 26, 0.12);
+  --moss:        #3f5239;
+  --gold:        #c69334;
+  --gold-deep:   #9b6f1f;
+  --plum:        #5b3a4e;
+  --line:        rgba(28, 22, 17, 0.18);
+  --line-soft:   rgba(28, 22, 17, 0.08);
+  --line-strong: rgba(28, 22, 17, 0.4);
+
+  --serif-display: "Fraunces", "Newsreader", Georgia, serif;
+  --serif-body:    "Newsreader", "Iowan Old Style", Georgia, serif;
+  --mono:          "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif-body);
+  font-size: 19px;
+  line-height: 1.65;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ─── paper grain ───────────────────────────────────────────────── */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 1;
+  opacity: 0.42;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.11  0 0 0 0 0.085  0 0 0 0 0.066  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* ─── warm light bloom ──────────────────────────────────────────── */
+body::after {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(1100px 700px at 92% -8%, rgba(198, 147, 52, 0.22), transparent 62%),
+    radial-gradient(900px 600px at -8% 105%, rgba(177, 66, 26, 0.13), transparent 60%),
+    radial-gradient(700px 500px at 50% 50%, rgba(255, 247, 230, 0.18), transparent 60%);
+}
+
+::selection { background: var(--rust); color: var(--paper); }
+
+/* ─── scroll progress bar at top of page ─────────────────────────── */
+.progress {
+  position: fixed; top: 0; left: 0;
+  height: 3px; width: var(--p, 0%);
+  background: var(--rust);
+  z-index: 100;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px rgba(177, 66, 26, 0.4);
+}
+
+/* ─── containers ─────────────────────────────────────────────────── */
+.wrap {
+  position: relative;
+  z-index: 2;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 36px;
+}
+@media (max-width: 720px) {
+  .wrap { padding: 0 22px; }
+  body { font-size: 17px; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   MASTHEAD
+   ════════════════════════════════════════════════════════════════ */
+
+.masthead {
+  position: relative;
+  z-index: 3;
+  border-bottom: 1px solid var(--ink);
+  padding: 16px 0 14px;
+  background: var(--paper);
+}
+.masthead-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.masthead-row .left { display: flex; gap: 22px; align-items: center; }
+.masthead-row .vol { color: var(--rust); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.masthead-row .vol::before {
+  content: "✦"; font-size: 14px; color: var(--rust); transform: translateY(-1px);
+}
+.masthead-row .right { display: flex; gap: 22px; }
+.masthead-row a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-bottom: 1px dotted transparent;
+  padding-bottom: 1px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.masthead-row a:hover { color: var(--rust); border-color: var(--rust); }
+@media (max-width: 720px) { .masthead-row .right { display: none; } }
+
+/* ════════════════════════════════════════════════════════════════
+   HERO
+   ════════════════════════════════════════════════════════════════ */
+
+.hero {
+  position: relative;
+  z-index: 2;
+  padding: 72px 0 80px;
+  border-bottom: 3px double var(--ink);
+  overflow: hidden;
+}
+
+/* decorative compass-rose / printer's-mark in the corner */
+.hero-mark {
+  position: absolute;
+  top: 56px;
+  right: 36px;
+  width: 88px; height: 88px;
+  color: var(--rust);
+  opacity: 0.85;
+  pointer-events: none;
+}
+@media (max-width: 880px) { .hero-mark { width: 60px; height: 60px; top: 40px; right: 22px; } }
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin: 0 0 36px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.hero-eyebrow::before, .hero-eyebrow::after {
+  content: ""; height: 1px; flex: 1; background: var(--line);
+}
+.hero-eyebrow span { white-space: nowrap; }
+
+.hero h1 {
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-variation-settings: "SOFT" 30, "opsz" 144;
+  font-size: clamp(58px, 12vw, 192px);
+  line-height: 0.88;
+  letter-spacing: -0.038em;
+  margin: 0 0 28px;
+  color: var(--ink);
+  position: relative;
+}
+.hero h1 .it {
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  color: var(--rust);
+  font-weight: 300;
+  position: relative;
+}
+.hero h1 .it::after {
+  content: "";
+  position: absolute;
+  left: -4px;
+  right: 18%;
+  bottom: 0.04em;
+  height: 0.08em;
+  background: var(--rust);
+  opacity: 0.16;
+  z-index: -1;
+}
+.hero h1 .small {
+  display: block;
+  font-size: 0.4em;
+  font-style: italic;
+  font-weight: 300;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  color: var(--ink-soft);
+  letter-spacing: -0.018em;
+  margin-top: 14px;
+  line-height: 1.05;
+}
+.hero h1 .small em {
+  font-style: italic;
+  color: var(--rust);
+}
+
+.hero-deck {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 64px;
+  align-items: start;
+  margin-top: 56px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 880px) {
+  .hero-deck { grid-template-columns: 1fr; gap: 36px; }
+}
+
+.hero-lede {
+  font-family: var(--serif-body);
+  font-size: clamp(20px, 2vw, 24px);
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--ink-soft);
+  max-width: 38ch;
+  margin: 0;
+}
+.hero-lede .first {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  color: var(--rust);
+  font-size: 1.25em;
+  font-weight: 300;
+}
+.hero-lede em {
+  font-style: italic;
+  color: var(--rust);
+}
+
+.hero-meta {
+  border-left: 1px solid var(--ink);
+  padding-left: 32px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.85;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0;
+}
+.hero-meta dt {
+  color: var(--rust);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  margin-top: 14px;
+  font-weight: 600;
+}
+.hero-meta dt:first-child { margin-top: 0; }
+.hero-meta dd { margin: 0 0 6px; color: var(--ink); font-weight: 500; }
+@media (max-width: 880px) {
+  .hero-meta {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--ink);
+    padding-top: 24px;
+  }
+}
+
+/* registration corner marks at top of hero */
+.regmarks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.regmark {
+  position: absolute;
+  width: 14px; height: 14px;
+  color: var(--ink-fade);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   TOC
+   ════════════════════════════════════════════════════════════════ */
+
+.toc {
+  position: relative;
+  z-index: 2;
+  padding: 64px 0 56px;
+  border-bottom: 1px solid var(--line);
+}
+
+.toc-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 36px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+  gap: 24px;
+}
+.toc-header h2 {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-weight: 300;
+  font-size: clamp(28px, 4vw, 44px);
+  margin: 0;
+  letter-spacing: -0.022em;
+}
+.toc-header .label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+}
+
+.toc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 56px;
+}
+@media (max-width: 720px) { .toc-grid { grid-template-columns: 1fr; gap: 0; } }
+
+/* TOC entries with dot leaders — like a real book index */
+.toc-item {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 16px 4px;
+  border-top: 1px solid var(--line);
+  text-decoration: none;
+  color: var(--ink);
+  transition: padding 0.25s, color 0.2s;
+}
+.toc-item:hover {
+  padding-left: 14px;
+  color: var(--rust-deep);
+}
+.toc-item:last-child { border-bottom: 1px solid var(--line); }
+.toc-item .num {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--rust);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+  width: 30px;
+}
+.toc-item .ttl {
+  font-family: var(--serif-display);
+  font-size: 21px;
+  font-weight: 400;
+  font-variation-settings: "SOFT" 30, "opsz" 60;
+  letter-spacing: -0.008em;
+  white-space: nowrap;
+}
+.toc-item .leader {
+  flex: 1;
+  border-bottom: 1px dotted var(--line-strong);
+  margin-bottom: 4px;
+  min-width: 24px;
+}
+.toc-item .pg {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-fade);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.toc-item:hover .leader { border-color: var(--rust); }
+.toc-item:hover .pg { color: var(--rust); }
+
+/* ════════════════════════════════════════════════════════════════
+   PROLOGUE
+   ════════════════════════════════════════════════════════════════ */
+
+.prologue {
+  position: relative;
+  z-index: 2;
+  padding: 96px 0 88px;
+  border-bottom: 1px solid var(--line);
+}
+
+.prologue-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 72px;
+  align-items: start;
+}
+@media (max-width: 880px) { .prologue-grid { grid-template-columns: 1fr; gap: 28px; } }
+
+/* the section rubric — vertical chapter-spine label */
+.section-rubric {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--rust);
+  position: sticky;
+  top: 24px;
+}
+.section-rubric .num {
+  display: block;
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-size: 96px;
+  line-height: 0.9;
+  color: var(--ink);
+  font-weight: 300;
+  letter-spacing: -0.05em;
+  margin-bottom: 14px;
+}
+.section-rubric .pill {
+  display: inline-block;
+  border: 1px solid var(--rust);
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-top: 14px;
+  font-size: 10px;
+}
+.section-rubric .underline {
+  display: block;
+  width: 38px; height: 2px;
+  background: var(--rust);
+  margin-top: 8px;
+}
+
+/* prose */
+.prose { max-width: 64ch; }
+.prose h2 {
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-variation-settings: "SOFT" 50, "opsz" 144;
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 1.02;
+  letter-spacing: -0.026em;
+  margin: 0 0 28px;
+}
+.prose h2 em {
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  color: var(--rust);
+  font-weight: 300;
+}
+.prose h3 {
+  font-family: var(--serif-display);
+  font-weight: 500;
+  font-variation-settings: "SOFT" 30, "opsz" 60;
+  font-size: 26px;
+  letter-spacing: -0.012em;
+  margin: 38px 0 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.prose h3::before {
+  content: "§";
+  font-family: var(--serif-display);
+  font-style: italic;
+  color: var(--rust);
+  font-size: 0.9em;
+  font-weight: 300;
+}
+.prose p { margin: 0 0 18px; }
+.prose p:first-of-type::first-letter {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-size: 4.6em;
+  line-height: 0.82;
+  float: left;
+  margin: 0.05em 0.1em -0.05em 0;
+  color: var(--rust);
+  font-weight: 300;
+}
+.prose strong { font-weight: 600; color: var(--ink); }
+.prose em { font-style: italic; color: var(--ink-soft); }
+.prose a {
+  color: var(--rust-deep);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: background 0.15s, color 0.15s;
+}
+.prose a:hover {
+  background: var(--rust);
+  color: var(--paper);
+  text-decoration: none;
+}
+
+/* ─── analogy "FIG. 01" card ─── */
+.analogy {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  margin: 44px 0 28px;
+  border: 1px solid var(--ink);
+  background: var(--paper-deep);
+  position: relative;
+  box-shadow: 4px 4px 0 var(--paper-edge);
+}
+.analogy::before {
+  content: "FIG. 01 — THE THREE THINGS";
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  background: var(--paper);
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--ink-fade);
+}
+.analogy-cell {
+  padding: 30px 22px 26px;
+  border-right: 1px solid var(--ink);
+  position: relative;
+}
+.analogy-cell:last-child { border-right: none; }
+.analogy-cell .icon {
+  width: 32px; height: 32px;
+  color: var(--rust);
+  margin-bottom: 14px;
+}
+.analogy-cell h4 {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 60;
+  font-weight: 300;
+  font-size: 24px;
+  margin: 0 0 6px;
+  color: var(--rust);
+  letter-spacing: -0.005em;
+}
+.analogy-cell .what {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--ink-fade);
+  margin-bottom: 14px;
+}
+.analogy-cell p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.analogy-cell .arrow-between {
+  position: absolute;
+  right: -11px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--paper-deep);
+  border: 1px solid var(--ink);
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--rust);
+  z-index: 2;
+  border-radius: 50%;
+}
+@media (max-width: 720px) {
+  .analogy { grid-template-columns: 1fr; }
+  .analogy-cell { border-right: none; border-bottom: 1px solid var(--ink); }
+  .analogy-cell:last-child { border-bottom: none; }
+  .analogy-cell .arrow-between {
+    right: 50%;
+    top: auto;
+    bottom: -11px;
+    transform: translateX(50%) rotate(90deg);
+  }
+}
+
+/* ─── vocabulary / translation table ─── */
+.vocab {
+  border: 1px solid var(--ink);
+  background: var(--paper-deep);
+  margin: 40px 0 28px;
+  position: relative;
+  box-shadow: 4px 4px 0 var(--paper-edge);
+}
+.vocab::before {
+  content: "FIG. 02 — TRANSLATIONS";
+  position: absolute;
+  top: -10px; left: 16px;
+  background: var(--paper);
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--ink-fade);
+}
+.vocab-head {
+  display: grid;
+  grid-template-columns: 140px 1.2fr 1.6fr;
+  gap: 24px;
+  padding: 14px 22px 10px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+  border-bottom: 1px solid var(--ink);
+}
+.vocab-row {
+  display: grid;
+  grid-template-columns: 140px 1.2fr 1.6fr;
+  gap: 24px;
+  padding: 14px 22px;
+  border-top: 1px dashed var(--line);
+  align-items: baseline;
+}
+.vocab-row:first-of-type { border-top: none; }
+.vocab-word {
+  font-family: var(--mono);
+  font-size: 13.5px;
+  color: var(--rust);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.vocab-mean {
+  font-family: var(--serif-body);
+  font-size: 16px;
+  color: var(--ink);
+  font-weight: 500;
+  line-height: 1.4;
+}
+.vocab-like {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 60;
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  letter-spacing: -0.005em;
+}
+.vocab-like::before {
+  content: "≈ "; color: var(--rust); font-style: normal; font-weight: 700;
+}
+@media (max-width: 720px) {
+  .vocab-head { display: none; }
+  .vocab-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 18px 20px;
+  }
+  .vocab-row .vocab-word { color: var(--rust); }
+  .vocab-row .vocab-mean { font-size: 17px; }
+  .vocab-row .vocab-like { margin-top: 4px; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   STAGES
+   ════════════════════════════════════════════════════════════════ */
+
+.stage {
+  position: relative;
+  z-index: 2;
+  padding: 104px 0 96px;
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+.stage:nth-child(odd) {
+  background: linear-gradient(180deg, transparent 0%, rgba(232, 222, 198, 0.55) 100%);
+}
+
+/* GIANT ghosted stage number in the background */
+.stage-bg-num {
+  position: absolute;
+  top: 38px;
+  right: -28px;
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-weight: 200;
+  font-size: clamp(180px, 24vw, 380px);
+  line-height: 1;
+  color: var(--ink);
+  opacity: 0.045;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -0.05em;
+  z-index: 0;
+}
+@media (max-width: 880px) {
+  .stage-bg-num { font-size: 240px; right: -40px; top: 24px; }
+}
+
+.stage-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 220px 1fr 280px;
+  gap: 56px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .stage-grid { grid-template-columns: 200px 1fr; gap: 48px; }
+  .stage-margin { display: none; }
+}
+@media (max-width: 880px) {
+  .stage-grid { grid-template-columns: 1fr; gap: 24px; }
+  .section-rubric { position: static; }
+}
+
+/* ─── code blocks ─── */
+.code {
+  position: relative;
+  background: #1c1611;
+  color: #ece4d1;
+  border: 1px solid var(--ink);
+  margin: 28px 0;
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.65;
+  overflow: hidden;
+  box-shadow: 6px 6px 0 var(--paper-edge);
+  border-radius: 0;
+}
+.code-head {
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 14px;
+  background: linear-gradient(180deg, #2e2218 0%, #251b13 100%);
+  border-bottom: 1px solid #3a2d20;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #a89579;
+  align-items: center;
+}
+.code-head .dots { display: flex; gap: 6px; }
+.code-head .dots span {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #4a3a2a;
+}
+.code-head .dots span:first-child { background: #c4593a; }
+.code-head .dots span:nth-child(2) { background: #c69334; }
+.code-head .dots span:nth-child(3) { background: #6f8a55; }
+.code pre {
+  margin: 0;
+  padding: 20px 22px;
+  overflow-x: auto;
+  white-space: pre;
+}
+.code .prompt { color: var(--gold); user-select: none; }
+.code .cmt    { color: #8a7a5e; font-style: italic; }
+.code .str    { color: #d4a26b; }
+.code .kw     { color: #e07350; }
+.code .out    { color: #b8a98c; }
+.code .var    { color: #c4d088; }
+.code .arrow  { color: var(--rust); font-weight: 600; }
+.code .tick   { color: #98c47a; font-weight: 600; }
+
+/* inline code */
+code {
+  font-family: var(--mono);
+  font-size: 0.84em;
+  background: var(--paper-deep);
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+/* ─── lists ─── */
+.prose ol, .prose ul { padding-left: 1.4em; margin: 0 0 24px; }
+.prose ol { list-style: none; counter-reset: ol; padding-left: 1.8em; }
+.prose ol li {
+  counter-increment: ol;
+  position: relative;
+  margin-bottom: 12px;
+  padding-left: 0.4em;
+}
+.prose ol li::before {
+  content: counter(ol, decimal-leading-zero);
+  position: absolute;
+  left: -1.9em;
+  top: 0.18em;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--rust);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.prose ul { list-style: none; padding-left: 1.4em; }
+.prose ul li {
+  position: relative;
+  margin-bottom: 10px;
+  padding-left: 0.4em;
+}
+.prose ul li::before {
+  content: "·";
+  position: absolute;
+  left: -1em;
+  top: -0.05em;
+  color: var(--rust);
+  font-size: 1.4em;
+  font-weight: 700;
+}
+
+/* ─── pull quote ─── */
+.pull {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-weight: 300;
+  font-size: clamp(28px, 3.4vw, 42px);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 36px 0;
+  padding: 14px 0 18px 32px;
+  border-left: 3px solid var(--rust);
+  position: relative;
+}
+.pull::before {
+  content: "❝";
+  position: absolute;
+  top: -14px; left: -2px;
+  color: var(--rust);
+  font-size: 64px;
+  line-height: 1;
+  font-style: normal;
+  background: var(--paper);
+  padding-right: 4px;
+}
+.pull cite {
+  display: block;
+  margin-top: 14px;
+  font-style: normal;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+}
+.pull cite::before { content: "— "; color: var(--rust); }
+
+/* ─── margin notes ─── */
+.stage-margin {
+  position: sticky;
+  top: 24px;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+.note {
+  border-top: 1px solid var(--ink);
+  padding: 16px 0 18px;
+  margin-bottom: 14px;
+  position: relative;
+}
+.note .label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.note .label::before {
+  content: "◆";
+  font-size: 9px;
+}
+.note .label.warn::before { content: "⚠"; }
+.note .label.tip::before  { content: "✦"; }
+.note .label.lost::before { content: "❋"; }
+.note .label.warn { color: var(--rust); }
+.note .label.tip  { color: var(--moss); }
+.note .label.lost { color: var(--plum); }
+.note p { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--ink-soft); }
+.note p + p { margin-top: 8px; }
+
+/* ─── inline callouts ─── */
+.inline-callout {
+  border: 1px solid var(--ink);
+  background: var(--paper-deep);
+  padding: 22px 26px 20px;
+  margin: 28px 0;
+  position: relative;
+  box-shadow: 4px 4px 0 var(--paper-edge);
+}
+.inline-callout::before {
+  content: attr(data-label);
+  position: absolute;
+  top: -9px; left: 14px;
+  background: var(--paper);
+  padding: 0 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--rust);
+  text-transform: uppercase;
+}
+.inline-callout p:last-child { margin-bottom: 0; }
+.inline-callout p:first-of-type::first-letter {
+  /* override the drop cap inside callouts */
+  font-family: inherit;
+  font-style: normal;
+  font-size: inherit;
+  line-height: inherit;
+  float: none;
+  margin: 0;
+  color: inherit;
+  font-weight: inherit;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ASK CLAUDE — plain-English prompt callouts
+   ════════════════════════════════════════════════════════════════ */
+
+.ask {
+  margin: 28px 0;
+  padding: 20px 26px 22px 28px;
+  border-left: 3px solid var(--moss);
+  background:
+    linear-gradient(90deg, rgba(63, 82, 57, 0.085) 0%, rgba(63, 82, 57, 0.02) 80%, transparent 100%);
+  position: relative;
+}
+.ask-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--moss);
+  font-weight: 600;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ask-label::before {
+  content: "✦"; color: var(--moss); font-size: 13px;
+}
+.ask-label::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(63, 82, 57, 0.35), transparent);
+  max-width: 80px;
+}
+.ask p {
+  margin: 0;
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 60;
+  font-weight: 300;
+  font-size: 20px;
+  line-height: 1.42;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+.ask p::before { content: "“"; color: var(--moss); margin-right: 2px; }
+.ask p::after  { content: "”"; color: var(--moss); margin-left: 2px; }
+.ask p + p { margin-top: 8px; }
+.ask p:first-of-type::first-letter {
+  font-family: inherit;
+  font-style: italic;
+  font-size: inherit;
+  line-height: inherit;
+  float: none;
+  margin: 0;
+  color: inherit;
+  font-weight: inherit;
+}
+.ask .then {
+  display: block;
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+  font-style: normal;
+}
+.ask .then::before { content: "→ "; color: var(--moss); font-weight: 700; }
+
+/* ════════════════════════════════════════════════════════════════
+   PLAIN ENGLISH section (paired prompts ↔ actions)
+   ════════════════════════════════════════════════════════════════ */
+
+.plain {
+  position: relative;
+  z-index: 2;
+  padding: 104px 0 96px;
+  border-bottom: 1px solid var(--line);
+}
+.plain-head {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 56px;
+  align-items: end;
+  margin-bottom: 48px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+@media (max-width: 880px) {
+  .plain-head { grid-template-columns: 1fr; gap: 14px; align-items: start; }
+}
+.plain-head .label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--moss);
+  display: flex; align-items: center; gap: 10px;
+}
+.plain-head .label::before {
+  content: ""; height: 1px; width: 24px; background: var(--moss);
+}
+.plain-head h2 {
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-variation-settings: "SOFT" 50, "opsz" 144;
+  font-size: clamp(38px, 5.5vw, 72px);
+  line-height: 0.98;
+  margin: 0;
+  letter-spacing: -0.028em;
+  max-width: 22ch;
+}
+.plain-head h2 em {
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  color: var(--moss);
+  font-weight: 300;
+}
+
+.plain-cat {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin: 36px 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.plain-cat:first-of-type { margin-top: 0; }
+.plain-cat .num { color: var(--ink-fade); font-size: 10px; }
+.plain-cat::after {
+  content: ""; flex: 1; height: 1px; background: var(--line);
+}
+
+.plain-row {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 36px;
+  padding: 22px 0;
+  border-top: 1px dashed var(--line);
+  align-items: baseline;
+}
+.plain-row:first-of-type { border-top: 1px solid var(--ink); }
+.plain-row:last-of-type  { border-bottom: 1px solid var(--ink); }
+@media (max-width: 880px) {
+  .plain-row { grid-template-columns: 1fr; gap: 14px; }
+}
+
+.plain-say {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-weight: 300;
+  font-size: clamp(20px, 2.2vw, 26px);
+  line-height: 1.28;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  position: relative;
+  padding-left: 28px;
+}
+.plain-say::before {
+  content: "“";
+  position: absolute;
+  left: 0; top: -0.15em;
+  color: var(--moss);
+  font-size: 1.4em;
+  line-height: 1;
+}
+.plain-say::after {
+  content: "”";
+  color: var(--moss);
+  margin-left: 2px;
+}
+
+.plain-does {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-left: 2px solid var(--rust);
+  padding-left: 16px;
+}
+.plain-does .head {
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--rust);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.plain-does code {
+  font-size: 0.95em;
+  background: var(--paper-deep);
+  white-space: normal;
+  word-break: break-word;
+}
+
+.plain-tail {
+  margin-top: 48px;
+  padding: 22px 28px;
+  background: var(--paper-deep);
+  border: 1px solid var(--ink);
+  font-family: var(--serif-body);
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  position: relative;
+  box-shadow: 4px 4px 0 var(--paper-edge);
+}
+.plain-tail::before {
+  content: "ONE PROMPT TO RULE THEM ALL";
+  position: absolute;
+  top: -10px; left: 16px;
+  background: var(--paper);
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--rust);
+  text-transform: uppercase;
+}
+.plain-tail em {
+  font-style: italic;
+  color: var(--rust);
+}
+.plain-tail strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   THE LOOP
+   ════════════════════════════════════════════════════════════════ */
+
+.loop-figure {
+  position: relative;
+  margin: 44px 0 32px;
+}
+.loop-figure::before {
+  content: "FIG. 02 — THE DAILY LOOP";
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  background: var(--paper);
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--ink-fade);
+  z-index: 3;
+}
+.loop {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--ink);
+  background: var(--paper-deep);
+  overflow-x: auto;
+  box-shadow: 4px 4px 0 var(--paper-edge);
+}
+.loop-step {
+  flex: 1;
+  padding: 32px 24px 28px;
+  border-right: 1px solid var(--ink);
+  position: relative;
+  min-width: 170px;
+}
+.loop-step:last-child { border-right: none; }
+.loop-step .n {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--rust);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.loop-step .h {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 60;
+  font-weight: 300;
+  font-size: 26px;
+  margin-bottom: 8px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.loop-step .d {
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.loop-step::after {
+  content: "→";
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  color: var(--rust);
+  z-index: 1;
+  border-radius: 50%;
+}
+.loop-step:last-child::after {
+  content: "↺";
+  font-size: 13px;
+  background: var(--rust);
+  color: var(--paper);
+  border-color: var(--rust);
+}
+@media (max-width: 720px) {
+  .loop { flex-direction: column; }
+  .loop-step { border-right: none; border-bottom: 1px solid var(--ink); }
+  .loop-step:last-child { border-bottom: none; }
+  .loop-step::after {
+    right: 50%; top: auto; bottom: -11px;
+    transform: translateX(50%) rotate(90deg);
+  }
+}
+
+/* ─── "end of stage" ornament ─── */
+.ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin: 40px 0 0;
+  color: var(--rust);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.32em;
+}
+.ornament::before, .ornament::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line) 30%, var(--line) 70%, transparent);
+  max-width: 80px;
+}
+.ornament .glyph {
+  font-size: 16px;
+  opacity: 0.85;
+  letter-spacing: 0.5em;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CHEAT SHEET
+   ════════════════════════════════════════════════════════════════ */
+
+.cheat {
+  position: relative;
+  z-index: 2;
+  padding: 104px 0 96px;
+  background: var(--ink);
+  color: var(--paper);
+  border-top: 3px double var(--rust);
+  border-bottom: 3px double var(--rust);
+  overflow: hidden;
+}
+.cheat::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 0.95  0 0 0 0 0.85  0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  pointer-events: none;
+  opacity: 0.7;
+  mix-blend-mode: screen;
+}
+.cheat::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(700px 400px at 90% 0%, rgba(198, 147, 52, 0.12), transparent 60%),
+    radial-gradient(600px 400px at 0% 100%, rgba(177, 66, 26, 0.1), transparent 60%);
+  pointer-events: none;
+}
+.cheat .wrap { position: relative; z-index: 2; }
+
+.cheat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 48px;
+  border-bottom: 1px solid rgba(241, 235, 220, 0.22);
+  padding-bottom: 22px;
+  gap: 24px;
+}
+.cheat-head h2 {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-weight: 300;
+  font-size: clamp(46px, 6.5vw, 88px);
+  margin: 0;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+.cheat-head h2 em {
+  font-style: normal;
+  font-variation-settings: "SOFT" 30, "opsz" 144;
+  color: var(--gold);
+}
+.cheat-head .meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(241, 235, 220, 0.55);
+  text-align: right;
+  line-height: 1.7;
+}
+.cheat-head .meta span { display: block; }
+.cheat-head .meta .accent { color: var(--gold); }
+@media (max-width: 720px) {
+  .cheat-head { flex-direction: column; align-items: flex-start; gap: 18px; }
+  .cheat-head .meta { text-align: left; }
+}
+
+/* category divider */
+.cheat-cat {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding: 32px 0 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  border-top: 1px solid rgba(241, 235, 220, 0.22);
+}
+.cheat-cat:first-of-type { border-top: none; padding-top: 0; }
+.cheat-cat .num {
+  color: rgba(241, 235, 220, 0.5);
+  font-size: 10px;
+}
+.cheat-cat::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold) 0%, rgba(198, 147, 52, 0.1) 100%);
+  opacity: 0.4;
+}
+
+.cheat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-left: 1px solid rgba(241, 235, 220, 0.16);
+  margin-bottom: 12px;
+}
+@media (max-width: 880px) { .cheat-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 580px) { .cheat-grid { grid-template-columns: 1fr; } }
+
+.cheat-cell {
+  border-right: 1px solid rgba(241, 235, 220, 0.16);
+  border-top: 1px solid rgba(241, 235, 220, 0.16);
+  padding: 22px 22px 20px;
+  background: rgba(241, 235, 220, 0.012);
+  transition: background 0.2s;
+}
+.cheat-cell:hover { background: rgba(198, 147, 52, 0.06); }
+.cheat-cell .cmd {
+  font-family: var(--mono);
+  font-size: 13.5px;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 8px;
+  word-break: break-word;
+  line-height: 1.4;
+}
+.cheat-cell .desc {
+  font-family: var(--serif-body);
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: rgba(241, 235, 220, 0.78);
+}
+.cheat-cell .desc code {
+  background: rgba(241, 235, 220, 0.08);
+  border: 1px solid rgba(241, 235, 220, 0.15);
+  color: rgba(241, 235, 220, 0.85);
+  font-size: 0.85em;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FAQ
+   ════════════════════════════════════════════════════════════════ */
+
+.faq {
+  position: relative;
+  z-index: 2;
+  padding: 104px 0;
+  border-bottom: 1px solid var(--line);
+}
+.faq-head {
+  margin-bottom: 40px;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 56px;
+  align-items: start;
+}
+@media (max-width: 880px) { .faq-head { grid-template-columns: 1fr; gap: 14px; } }
+
+.faq-head .label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.faq-head .label::before {
+  content: ""; height: 1px; width: 24px; background: var(--rust);
+}
+.faq-head h2 {
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-variation-settings: "SOFT" 50, "opsz" 144;
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 1.04;
+  margin: 0;
+  letter-spacing: -0.026em;
+  max-width: 18ch;
+}
+.faq-head h2 em {
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  color: var(--rust);
+  font-weight: 300;
+}
+
+.faq details {
+  border-top: 1px solid var(--ink);
+  padding: 24px 4px;
+  cursor: pointer;
+}
+.faq details:last-of-type { border-bottom: 1px solid var(--ink); }
+.faq summary {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-variation-settings: "SOFT" 30, "opsz" 60;
+  font-size: clamp(20px, 2.4vw, 26px);
+  letter-spacing: -0.012em;
+  gap: 18px;
+  line-height: 1.25;
+  transition: color 0.15s;
+}
+.faq summary:hover { color: var(--rust-deep); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary .q-num {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--rust);
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+  align-self: center;
+  width: 44px;
+  font-weight: 600;
+}
+.faq summary .q-text { flex: 1; }
+.faq summary .toggle {
+  font-family: var(--mono);
+  font-size: 22px;
+  color: var(--rust);
+  flex-shrink: 0;
+  transition: transform 0.25s;
+}
+.faq details[open] summary .toggle { transform: rotate(45deg); }
+.faq details > div {
+  padding: 18px 0 6px 64px;
+  max-width: 64ch;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.faq details > div p { margin: 0 0 14px; }
+.faq details > div p:last-child { margin-bottom: 0; }
+.faq details > div code { font-size: 0.86em; }
+@media (max-width: 580px) {
+  .faq details > div { padding-left: 0; }
+  .faq summary .q-num { width: 38px; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FOOTER
+   ════════════════════════════════════════════════════════════════ */
+
+footer {
+  position: relative;
+  z-index: 2;
+  padding: 80px 0 64px;
+  border-top: 3px double var(--ink);
+  background: var(--paper);
+  overflow: hidden;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 0.8fr;
+  gap: 48px;
+  align-items: end;
+}
+@media (max-width: 880px) {
+  .footer-grid { grid-template-columns: 1fr; gap: 36px; }
+}
+
+.footer-mark {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-weight: 300;
+  font-size: clamp(46px, 6vw, 88px);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin: 0;
+}
+.footer-mark em {
+  color: var(--rust);
+  font-style: normal;
+  font-variation-settings: "SOFT" 30, "opsz" 144;
+}
+
+/* the rubber stamp */
+.stamp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 168px; height: 168px;
+  margin-left: auto;
+  position: relative;
+  color: var(--rust);
+  transform: rotate(-8deg);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.stamp:hover { transform: rotate(0deg) scale(1.03); }
+.stamp svg { width: 100%; height: 100%; }
+.stamp-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--rust);
+  text-align: center;
+  font-weight: 700;
+}
+.stamp-text .big {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-weight: 400;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin: 4px 0 6px;
+  text-transform: none;
+}
+
+@media (max-width: 880px) {
+  .stamp { margin: 0; }
+}
+
+.footer-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+  text-align: right;
+  line-height: 1.95;
+}
+.footer-meta div { margin-bottom: 2px; }
+.footer-meta .head {
+  color: var(--rust);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.footer-meta a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--ink-fade);
+}
+.footer-meta a:hover { color: var(--rust); border-color: var(--rust); }
+@media (max-width: 880px) { .footer-meta { text-align: left; } }
+
+.footer-fine {
+  border-top: 1px solid var(--line);
+  margin-top: 56px;
+  padding-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+  gap: 16px;
+}
+@media (max-width: 720px) {
+  .footer-fine { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ENTRANCE & REVEAL
+   ════════════════════════════════════════════════════════════════ */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero h1, .hero-eyebrow, .hero-deck, .hero-mark {
+  animation: rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.hero-eyebrow { animation-delay: 0.05s; }
+.hero h1     { animation-delay: 0.18s; }
+.hero-deck   { animation-delay: 0.36s; }
+.hero-mark   { animation-delay: 0.5s; animation-duration: 1.4s; }
+
+/* IntersectionObserver-driven reveals on stages */
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.reveal.in { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- scroll progress -->
+<div class="progress" id="progress"></div>
+
+<!-- ─────────────────────────────  MASTHEAD  ───────────────────────────── -->
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <div class="left">
+        <span class="vol">FIELD GUIDE №01</span>
+        <span class="hide-mobile">FOR BUILDERS WHO USE CLAUDE</span>
+      </div>
+      <div class="right">
+        <a href="#prologue">Prologue</a>
+        <a href="#stages">Stages</a>
+        <a href="#cheat">Cheat sheet</a>
+        <a href="#plain">Plain English</a>
+        <a href="#faq">Field notes</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ─────────────────────────────  HERO  ───────────────────────────── -->
+<section class="hero">
+  <!-- decorative compass-rose / printer's mark -->
+  <svg class="hero-mark" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true">
+    <circle cx="50" cy="50" r="44" />
+    <circle cx="50" cy="50" r="34" stroke-dasharray="2 3" opacity="0.6" />
+    <circle cx="50" cy="50" r="3" fill="currentColor" stroke="none" />
+    <path d="M50 6 L54 50 L50 94 L46 50 Z" fill="currentColor" stroke="none" opacity="0.85" />
+    <path d="M6 50 L50 54 L94 50 L50 46 Z" fill="currentColor" stroke="none" opacity="0.5" />
+    <path d="M19 19 L48 48 M52 52 L81 81 M81 19 L52 48 M48 52 L19 81" opacity="0.35" />
+    <text x="50" y="14" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6" fill="currentColor" stroke="none" letter-spacing="1">N</text>
+  </svg>
+
+  <div class="wrap">
+    <p class="hero-eyebrow"><span>A pocket guide · git, gh &amp; /ship · zero to hero</span></p>
+    <h1>
+      Keep your<br />
+      <span class="it">work.</span>
+      <span class="small">a field guide to <em>git</em> for people who build with Claude Code</span>
+    </h1>
+    <div class="hero-deck">
+      <p class="hero-lede">
+        <span class="first">Y</span>ou don't need to learn all of git.
+        You need just enough to never lose a working version, try risky changes
+        without fear, and pick up your project on a different machine like nothing happened.
+        <em>That</em> is what this guide gives you, and nothing more.
+      </p>
+      <dl class="hero-meta">
+        <dt>Reading time</dt>
+        <dd>≈ 18 minutes</dd>
+        <dt>Prerequisites</dt>
+        <dd>A laptop. A GitHub account. Curiosity.</dd>
+        <dt>You'll leave with</dt>
+        <dd>A repo, a habit, a safety net.</dd>
+        <dt>What this isn't</dt>
+        <dd>A complete reference. Skip the rabbit holes.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────  TOC  ───────────────────────────── -->
+<nav class="toc" id="stages">
+  <div class="wrap">
+    <div class="toc-header">
+      <h2>The map</h2>
+      <span class="label">Eight stages · one habit</span>
+    </div>
+    <div class="toc-grid">
+      <a class="toc-item" href="#prologue">
+        <span class="num">P</span>
+        <span class="ttl">A mental model first</span>
+        <span class="leader"></span>
+        <span class="pg">prologue</span>
+      </a>
+      <a class="toc-item" href="#s00">
+        <span class="num">00</span>
+        <span class="ttl">Install the tools</span>
+        <span class="leader"></span>
+        <span class="pg">setup</span>
+      </a>
+      <a class="toc-item" href="#s01">
+        <span class="num">01</span>
+        <span class="ttl">Sign in to GitHub</span>
+        <span class="leader"></span>
+        <span class="pg">auth</span>
+      </a>
+      <a class="toc-item" href="#s02">
+        <span class="num">02</span>
+        <span class="ttl">Make your first repo</span>
+        <span class="leader"></span>
+        <span class="pg">repo</span>
+      </a>
+      <a class="toc-item" href="#s03">
+        <span class="num">03</span>
+        <span class="ttl">Install /ship:ship</span>
+        <span class="leader"></span>
+        <span class="pg">plugin</span>
+      </a>
+      <a class="toc-item" href="#s04">
+        <span class="num">04</span>
+        <span class="ttl">The build &amp; ship loop</span>
+        <span class="leader"></span>
+        <span class="pg">rhythm</span>
+      </a>
+      <a class="toc-item" href="#s05">
+        <span class="num">05</span>
+        <span class="ttl">Working from another machine</span>
+        <span class="leader"></span>
+        <span class="pg">pull</span>
+      </a>
+      <a class="toc-item" href="#s06">
+        <span class="num">06</span>
+        <span class="ttl">Branches for risky moves</span>
+        <span class="leader"></span>
+        <span class="pg">branch</span>
+      </a>
+      <a class="toc-item" href="#s07">
+        <span class="num">07</span>
+        <span class="ttl">Time travel &amp; undo</span>
+        <span class="leader"></span>
+        <span class="pg">recover</span>
+      </a>
+      <a class="toc-item" href="#cheat">
+        <span class="num">★</span>
+        <span class="ttl">The cheat sheet</span>
+        <span class="leader"></span>
+        <span class="pg">reference</span>
+      </a>
+      <a class="toc-item" href="#plain">
+        <span class="num">✶</span>
+        <span class="ttl">Plain English prompts</span>
+        <span class="leader"></span>
+        <span class="pg">phrasebook</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─────────────────────────────  PROLOGUE  ───────────────────────────── -->
+<section class="prologue" id="prologue">
+  <div class="wrap">
+    <div class="prologue-grid">
+      <div class="section-rubric">
+        <span class="num">P.</span>
+        Prologue
+        <span class="underline"></span>
+        <span class="pill">A mental model</span>
+      </div>
+      <div class="prose reveal">
+        <h2>What git <em>actually</em> is</h2>
+        <p>
+          Forget every intimidating thing you've heard. Git is a <strong>save system</strong> for code.
+          That's it. When you're playing a game and you reach a boss fight, you save first.
+          When Claude has just helped you get the login screen working, you save the project. Same idea.
+        </p>
+        <p>
+          The complication is only that there are <em>three</em> places code can live, and once you can
+          picture them, the rest of git becomes obvious. Here they are:
+        </p>
+
+        <div class="analogy">
+          <div class="analogy-cell">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+              <path d="M3 6h7l2 2h9v11a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z"/>
+              <path d="M7 14h10M7 17h6" stroke-width="1"/>
+            </svg>
+            <div class="what">Place 01 · local</div>
+            <h4>Your folder</h4>
+            <p>The files on your laptop right now. The thing Claude is editing. This is where you build.</p>
+            <span class="arrow-between">→</span>
+          </div>
+          <div class="analogy-cell">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+              <path d="M4 4h16v16H4z"/>
+              <path d="M4 8h16M8 4v16" stroke-width="1"/>
+              <circle cx="14" cy="13" r="2.2" />
+            </svg>
+            <div class="what">Place 02 · history</div>
+            <h4>Your local repo</h4>
+            <p>A hidden journal inside your folder (the <code>.git</code> directory) that remembers every save you've ever made.</p>
+            <span class="arrow-between">→</span>
+          </div>
+          <div class="analogy-cell">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" stroke-width="1"/>
+            </svg>
+            <div class="what">Place 03 · remote</div>
+            <h4>GitHub</h4>
+            <p>A copy of that journal living on a server. Your backup. The thing other machines can pull from.</p>
+          </div>
+        </div>
+
+        <p>
+          When you "save" with git, you're really doing two motions: <strong>commit</strong>
+          (write a new entry into the local journal) and <strong>push</strong>
+          (upload that entry to GitHub). The <code>/ship:ship</code> command does both in one breath
+          so you don't have to think about it.
+        </p>
+
+        <p>
+          Below is the rest of the git vocabulary you'll meet, translated into things you've
+          already used a hundred times — game saves, Word's "Save As," Google Drive. Skim it once;
+          come back when a word in a later stage feels foreign.
+        </p>
+
+        <div class="vocab">
+          <div class="vocab-head">
+            <div>The git word</div>
+            <div>What it actually means</div>
+            <div>If you've used a computer, it's like…</div>
+          </div>
+          <div class="vocab-row">
+            <div class="vocab-word">commit</div>
+            <div class="vocab-mean">a single save in your project's journal</div>
+            <div class="vocab-like">a save point in a video game — name it, return to it later</div>
+          </div>
+          <div class="vocab-row">
+            <div class="vocab-word">push</div>
+            <div class="vocab-mean">upload your saves to GitHub</div>
+            <div class="vocab-like">syncing a Word doc up to Google Drive</div>
+          </div>
+          <div class="vocab-row">
+            <div class="vocab-word">pull</div>
+            <div class="vocab-mean">download saves you don't have yet</div>
+            <div class="vocab-like">opening the latest Drive copy of a shared doc</div>
+          </div>
+          <div class="vocab-row">
+            <div class="vocab-word">repo</div>
+            <div class="vocab-mean">your project folder + every save you've ever made</div>
+            <div class="vocab-like">a Word doc with full version history attached</div>
+          </div>
+          <div class="vocab-row">
+            <div class="vocab-word">branch</div>
+            <div class="vocab-mean">a parallel save file you can experiment in</div>
+            <div class="vocab-like">"Save As: experiment.docx" — the original is untouched</div>
+          </div>
+          <div class="vocab-row">
+            <div class="vocab-word">merge</div>
+            <div class="vocab-mean">fold a parallel save back into the main timeline</div>
+            <div class="vocab-like">accepting all the tracked changes in Word</div>
+          </div>
+          <div class="vocab-row">
+            <div class="vocab-word">revert</div>
+            <div class="vocab-mean">a new save that undoes an older save</div>
+            <div class="vocab-like">a non-destructive "go back to last Tuesday's version"</div>
+          </div>
+          <div class="vocab-row">
+            <div class="vocab-word">main</div>
+            <div class="vocab-mean">the official current version of your project</div>
+            <div class="vocab-like">the doc everyone agrees is "the real one"</div>
+          </div>
+          <div class="vocab-row">
+            <div class="vocab-word">origin</div>
+            <div class="vocab-mean">the GitHub copy your folder is linked to</div>
+            <div class="vocab-like">the URL of your specific Drive document</div>
+          </div>
+          <div class="vocab-row">
+            <div class="vocab-word">.gitignore</div>
+            <div class="vocab-mean">a list of files git should never save</div>
+            <div class="vocab-like">files you mark "do not back up" in iCloud</div>
+          </div>
+        </div>
+
+        <p class="pull">
+          Save early. Save often. You can always go back to a save.
+          You can rarely undo what you didn't.
+          <cite>Rule №1</cite>
+        </p>
+
+        <p>
+          That single instinct — <em>"I just got something working, save it"</em> — is 80% of git as a habit.
+          The remaining stages teach you the buttons. Take them in order the first time, then return only
+          to the parts you need.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════  STAGE 00  ═══════════════════════════════ -->
+<section class="stage" id="s00">
+  <span class="stage-bg-num">00</span>
+  <div class="wrap">
+    <div class="stage-grid">
+      <div class="section-rubric">
+        <span class="num">00</span>
+        Setup
+        <span class="underline"></span>
+        <span class="pill">~5 minutes</span>
+      </div>
+      <div class="prose reveal">
+        <h2>Install the <em>three</em> tools</h2>
+        <p>
+          You need three things on your machine. If you already have one, skip its line.
+          Run these in your terminal — that's the black-and-white window where you type commands.
+          On Mac, open <em>Terminal</em>. On Windows, install
+          <a href="https://learn.microsoft.com/en-us/windows/wsl/install" target="_blank" rel="noopener">WSL</a>
+          and use the Ubuntu prompt. On Linux, you already know.
+        </p>
+
+        <h3>Git itself</h3>
+        <p>The thing all of this is built on. Most systems already have it.</p>
+        <div class="code">
+          <div class="code-head"><span>terminal</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="prompt">$</span> git <span class="kw">--version</span>
+<span class="out">git version 2.43.0</span>   <span class="cmt"># anything 2.x is fine</span></pre>
+        </div>
+        <p>
+          If that errored: on Mac run <code>xcode-select --install</code>; on Ubuntu/Debian run
+          <code>sudo apt install git</code>; on Windows install
+          <a href="https://git-scm.com/download/win" target="_blank" rel="noopener">Git for Windows</a>.
+        </p>
+
+        <h3>The GitHub CLI <code>(gh)</code></h3>
+        <p>
+          <code>gh</code> is GitHub's official command-line tool. It's the easiest way
+          to log in once and then create repositories without ever touching the website.
+        </p>
+        <div class="code">
+          <div class="code-head"><span>terminal · install gh</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="cmt"># macOS</span>
+<span class="prompt">$</span> brew install gh
+
+<span class="cmt"># Ubuntu / Debian / WSL</span>
+<span class="prompt">$</span> sudo apt install gh
+
+<span class="cmt"># anywhere else: see https://cli.github.com</span>
+
+<span class="cmt"># confirm it works</span>
+<span class="prompt">$</span> gh <span class="kw">--version</span>
+<span class="out">gh version 2.x.x</span></pre>
+        </div>
+
+        <h3>Claude Code</h3>
+        <p>
+          The CLI you'll do most of your building in. It runs in your terminal and edits files,
+          runs commands, and ships work — when you let it.
+        </p>
+        <div class="code">
+          <div class="code-head"><span>terminal · install claude</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="prompt">$</span> npm install -g @anthropic-ai/claude-code
+
+<span class="cmt"># first run will prompt you to log in</span>
+<span class="prompt">$</span> claude</pre>
+        </div>
+
+        <div class="inline-callout" data-label="If you get lost">
+          <p>
+            If <code>npm</code> isn't on your machine yet, install Node.js from
+            <a href="https://nodejs.org" target="_blank" rel="noopener">nodejs.org</a> first.
+            Pick the version labeled <em>LTS</em>.
+          </p>
+        </div>
+
+        <div class="ornament">
+          <span class="glyph">✦ ✦ ✦</span>
+          <span>END OF STAGE 00</span>
+          <span class="glyph">✦ ✦ ✦</span>
+        </div>
+      </div>
+
+      <aside class="stage-margin">
+        <div class="note">
+          <div class="label">Field notes</div>
+          <p>The terminal is just a text-based window into your computer. Nothing you type can break it that a restart won't fix.</p>
+        </div>
+        <div class="note">
+          <div class="label tip">Tip</div>
+          <p>Don't paste the <code>$</code> at the start of commands. It's just visually marking the prompt.</p>
+        </div>
+        <div class="note">
+          <div class="label warn">Heads up</div>
+          <p>You'll be asked for your password when running <code>sudo</code>. That's normal — it's your laptop password.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════  STAGE 01  ═══════════════════════════════ -->
+<section class="stage" id="s01">
+  <span class="stage-bg-num">01</span>
+  <div class="wrap">
+    <div class="stage-grid">
+      <div class="section-rubric">
+        <span class="num">01</span>
+        Auth
+        <span class="underline"></span>
+        <span class="pill">~2 minutes</span>
+      </div>
+      <div class="prose reveal">
+        <h2>Sign in <em>once</em>, on every machine</h2>
+        <p>
+          You only do this the first time you set up a new computer. <code>gh</code> opens a browser,
+          GitHub asks if it's really you, and after that your terminal can talk to your GitHub account
+          without ever asking again.
+        </p>
+
+        <div class="code">
+          <div class="code-head"><span>terminal · gh auth</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="prompt">$</span> gh auth login
+<span class="out">? Where do you use GitHub?</span>            <span class="arrow">→</span> GitHub.com
+<span class="out">? Preferred protocol?</span>                  <span class="arrow">→</span> HTTPS
+<span class="out">? Authenticate with credentials?</span>       <span class="arrow">→</span> Login with a web browser
+
+<span class="cmt"># gh prints a one-time code, copy it</span>
+<span class="cmt"># press Enter, browser opens, paste the code, approve</span>
+
+<span class="tick">✓</span> <span class="out">Logged in as your-github-username</span></pre>
+        </div>
+
+        <p>
+          While you're at it, set the name and email git will stamp on every save you make.
+          GitHub uses these to attribute your work. Use the email tied to your GitHub account.
+        </p>
+
+        <div class="code">
+          <div class="code-head"><span>terminal · git identity</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="prompt">$</span> git config --global user.name <span class="str">"Your Name"</span>
+<span class="prompt">$</span> git config --global user.email <span class="str">"you@example.com"</span>
+
+<span class="cmt"># also recommended — name your default branch 'main'</span>
+<span class="prompt">$</span> git config --global init.defaultBranch main</pre>
+        </div>
+
+        <div class="ask">
+          <div class="ask-label">Or just ask Claude</div>
+          <p>Set up git on this machine with my name «Your Name» and email «you@example.com», and make 'main' the default branch for new projects.</p>
+          <span class="then">Claude runs the three <code>git config</code> commands for you</span>
+        </div>
+
+        <div class="ornament">
+          <span class="glyph">✦ ✦ ✦</span>
+          <span>END OF STAGE 01</span>
+          <span class="glyph">✦ ✦ ✦</span>
+        </div>
+      </div>
+
+      <aside class="stage-margin">
+        <div class="note">
+          <div class="label tip">Tip</div>
+          <p>You only need to do this once per laptop. Every project you create from now on inherits the login.</p>
+        </div>
+        <div class="note">
+          <div class="label">Why HTTPS</div>
+          <p>It's the simplest path. SSH keys are powerful but they're a side quest. Stay on HTTPS until something forces you to switch.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════  STAGE 02  ═══════════════════════════════ -->
+<section class="stage" id="s02">
+  <span class="stage-bg-num">02</span>
+  <div class="wrap">
+    <div class="stage-grid">
+      <div class="section-rubric">
+        <span class="num">02</span>
+        Repo
+        <span class="underline"></span>
+        <span class="pill">~3 minutes</span>
+      </div>
+      <div class="prose reveal">
+        <h2>Make your <em>first</em> repository</h2>
+        <p>
+          A "repository" — repo, for short — is the project folder, plus its hidden journal of saves.
+          You'll have one repo per project. There are two ways to start, depending on whether you
+          already have a folder or not.
+        </p>
+
+        <h3>Path A — starting fresh</h3>
+        <p>You don't have any code yet — you want to begin a brand-new project.</p>
+        <div class="code">
+          <div class="code-head"><span>terminal · path A</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="cmt"># create the repo on GitHub AND on your laptop, in one step</span>
+<span class="prompt">$</span> gh repo create my-cool-app --private --clone
+
+<span class="cmt"># step into it</span>
+<span class="prompt">$</span> cd my-cool-app
+
+<span class="cmt"># now start Claude here and start building</span>
+<span class="prompt">$</span> claude</pre>
+        </div>
+        <p>
+          The flag <code>--private</code> keeps the project to yourself. Use <code>--public</code>
+          if you want anyone to be able to see it. <code>--clone</code> is what creates the local folder.
+        </p>
+
+        <h3>Path B — you already have a folder</h3>
+        <p>
+          You already started a project — maybe Claude has been editing files in some folder for an hour
+          and you're only now hearing about git. This is the most common case. We're going to <em>adopt</em>
+          your existing folder into git in four small steps.
+        </p>
+        <div class="code">
+          <div class="code-head"><span>terminal · path B</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="cmt"># step into your existing folder</span>
+<span class="prompt">$</span> cd path/to/your/project
+
+<span class="cmt"># 1. start the local journal (creates the hidden .git folder)</span>
+<span class="prompt">$</span> git init
+<span class="out">Initialized empty Git repository in .../.git/</span>
+
+<span class="cmt"># 2. stage every file in the folder</span>
+<span class="prompt">$</span> git add .
+
+<span class="cmt"># 3. make the very first save</span>
+<span class="prompt">$</span> git commit -m <span class="str">"first commit"</span>
+
+<span class="cmt"># 4. create a matching repo on GitHub and push everything up</span>
+<span class="prompt">$</span> gh repo create --source=. --private --push
+
+<span class="tick">✓</span> <span class="out">Created repository your-username/your-project on GitHub</span>
+<span class="tick">✓</span> <span class="out">Pushed commits to https://github.com/your-username/your-project</span></pre>
+        </div>
+
+        <p>
+          Four small commands. The first three turn your folder into a git repo and bookmark its
+          current state. The fourth uploads it to GitHub. After this you'll never need to do any of
+          them again on this project — from here on, <code>/ship:ship</code> handles everything.
+        </p>
+
+        <div class="inline-callout" data-label="What just happened">
+          <p>
+            <strong>Path A</strong> created an empty repo on GitHub and copied it down to your laptop —
+            you start with nothing.
+            <strong>Path B</strong> took the folder you already had, started a journal in it,
+            made the first save, created a matching repo on GitHub, and uploaded everything —
+            you start with whatever you'd built.
+            Either way, you now have a project that exists in all three places from the prologue.
+          </p>
+        </div>
+
+        <h3>About <code>.gitignore</code> — what <em>not</em> to save</h3>
+        <p>
+          Some files don't belong in git. Downloaded packages (the <code>node_modules</code> folder),
+          build output, OS junk like <code>.DS_Store</code>, and most importantly any file that
+          contains an API key, password, or other secret. Without a <code>.gitignore</code>,
+          git will happily save them all and push them to GitHub for the world to see.
+        </p>
+        <p>
+          A <code>.gitignore</code> is a plain text file at the root of your project. Each line
+          is a pattern of files to skip. Make one as soon as your project exists, ideally
+          <em>before</em> your first commit.
+        </p>
+
+        <div class="code">
+          <div class="code-head"><span>.gitignore · example for a Node.js project</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="cmt"># downloaded packages — never commit these</span>
+node_modules/
+
+<span class="cmt"># environment files with secrets</span>
+.env
+.env.local
+.env.*.local
+
+<span class="cmt"># build output</span>
+dist/
+build/
+.next/
+.cache/
+
+<span class="cmt"># OS &amp; editor junk</span>
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+<span class="cmt"># logs</span>
+*.log
+npm-debug.log*</pre>
+        </div>
+
+        <p>
+          Different stacks (Python, Rust, Next.js, Swift…) need different patterns. You don't have
+          to memorize them. The fastest path is to ask Claude to read your project once and write
+          the right one for you.
+        </p>
+
+        <div class="inline-callout" data-label="Already pushed something you shouldn't have?">
+          <p>
+            If you committed a real secret (API key, password) by mistake — <strong>rotate the
+            secret immediately</strong> on whatever service issued it. Then add it to <code>.gitignore</code>
+            and ask Claude to help untrack the file. Removing a secret from git history is harder
+            than just rotating it, so save your future self the trip.
+          </p>
+        </div>
+
+        <div class="ask">
+          <div class="ask-label">Or just ask Claude</div>
+          <p>Start a brand-new private GitHub project called my-cool-app and clone it into this folder.</p>
+          <p>This folder already has my project — make it a private GitHub repo and push everything up.</p>
+          <p>Generate a sensible .gitignore for this project before we make the first commit.</p>
+          <p>I already committed a .env file by mistake — help me untrack it and add a proper .gitignore.</p>
+          <span class="then">Pick whichever sentence matches your situation</span>
+        </div>
+
+        <div class="ornament">
+          <span class="glyph">✦ ✦ ✦</span>
+          <span>END OF STAGE 02</span>
+          <span class="glyph">✦ ✦ ✦</span>
+        </div>
+      </div>
+
+      <aside class="stage-margin">
+        <div class="note">
+          <div class="label">Why the CLI</div>
+          <p>You could click around github.com to do this. The CLI is one command and you don't have to copy/paste URLs back and forth. It scales.</p>
+        </div>
+        <div class="note">
+          <div class="label tip">Naming</div>
+          <p>Lowercase, hyphens-not-spaces. <code>my-portfolio</code> not <code>My Portfolio</code>. You won't regret this.</p>
+        </div>
+        <div class="note">
+          <div class="label warn">Secrets</div>
+          <p>If your folder has API keys or passwords in plain text, do <strong>not</strong> push it as <code>--public</code>. Move secrets into a <code>.env</code> file and add that file to <code>.gitignore</code> first.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════  STAGE 03  ═══════════════════════════════ -->
+<section class="stage" id="s03">
+  <span class="stage-bg-num">03</span>
+  <div class="wrap">
+    <div class="stage-grid">
+      <div class="section-rubric">
+        <span class="num">03</span>
+        Plugin
+        <span class="underline"></span>
+        <span class="pill">~2 minutes</span>
+      </div>
+      <div class="prose reveal">
+        <h2>Install <em>/ship:ship</em></h2>
+        <p>
+          Now we hand the plumbing of git over to Claude. <code>/ship:ship</code> is a slash
+          command from the
+          <a href="https://mikersays.github.io/mikersays-plugins/" target="_blank" rel="noopener">mikersays-plugins</a>
+          marketplace. When you run it, Claude looks at everything you've changed,
+          writes a sensible commit message, makes the save, and pushes it to GitHub.
+          One command, no thinking.
+        </p>
+
+        <h3>Add the marketplace</h3>
+        <p>
+          Inside Claude Code, slash commands let you control the tool itself.
+          We need to tell Claude where to find the <code>ship</code> plugin first.
+        </p>
+        <div class="code">
+          <div class="code-head"><span>inside claude code</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="prompt">&gt;</span> /plugin marketplace add mikersays/mikersays-plugins
+<span class="tick">✓</span> <span class="out">Added marketplace: mikersays-plugins</span>
+
+<span class="prompt">&gt;</span> /plugin install ship@mikersays-plugins
+<span class="tick">✓</span> <span class="out">Installed plugin: ship</span></pre>
+        </div>
+
+        <p>
+          From now on, whenever you're inside Claude Code in any project, you can type
+          <code>/ship:ship</code> and Claude will commit and push your work for you.
+        </p>
+
+        <h3>What it actually does</h3>
+        <ul>
+          <li>Looks at every file you've changed since your last save</li>
+          <li>Drafts a clear, conventional commit message that describes the work</li>
+          <li>Stages everything, commits, and pushes to GitHub in one go</li>
+          <li>Tells you when it's done so you know your work is safe</li>
+        </ul>
+
+        <p class="pull">
+          You will not lose work you have shipped.
+          <cite>Rule №2</cite>
+        </p>
+
+        <div class="ask">
+          <div class="ask-label">Or just ask Claude</div>
+          <p>Add the mikersays-plugins marketplace to Claude Code, then install the ship plugin from it.</p>
+          <span class="then">Claude runs the two <code>/plugin</code> commands</span>
+        </div>
+
+        <div class="ornament">
+          <span class="glyph">✦ ✦ ✦</span>
+          <span>END OF STAGE 03</span>
+          <span class="glyph">✦ ✦ ✦</span>
+        </div>
+      </div>
+
+      <aside class="stage-margin">
+        <div class="note">
+          <div class="label">Why a plugin</div>
+          <p>You <em>could</em> learn <code>git add</code>, <code>git commit -m "..."</code>, <code>git push</code> by hand. You can also let the assistant that just wrote your code write the message describing it. Optimize for shipping.</p>
+        </div>
+        <div class="note">
+          <div class="label tip">Marketplaces</div>
+          <p>A marketplace is a collection of plugins. <code>mikersays-plugins</code> is one of those. You can add more later with the same command pattern.</p>
+        </div>
+        <div class="note">
+          <div class="label">If <code>/ship:ship</code> can't find a remote</div>
+          <p>That means Stage 02 didn't finish — the project isn't connected to GitHub yet. Go back and run <code>gh repo create --source=. --private --push</code> first.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════  STAGE 04  ═══════════════════════════════ -->
+<section class="stage" id="s04">
+  <span class="stage-bg-num">04</span>
+  <div class="wrap">
+    <div class="stage-grid">
+      <div class="section-rubric">
+        <span class="num">04</span>
+        Rhythm
+        <span class="underline"></span>
+        <span class="pill">The habit</span>
+      </div>
+      <div class="prose reveal">
+        <h2>The build &amp; <em>ship</em> loop</h2>
+        <p>
+          Here is the entire daily rhythm. Internalize this and you're done with the hard part of git.
+        </p>
+
+        <div class="loop-figure">
+          <div class="loop">
+            <div class="loop-step">
+              <div class="n">01</div>
+              <div class="h">Build</div>
+              <div class="d">Ask Claude for one small, focused thing. Don't pile up changes.</div>
+            </div>
+            <div class="loop-step">
+              <div class="n">02</div>
+              <div class="h">Check</div>
+              <div class="d">Open the app. Click the new thing. Confirm it works.</div>
+            </div>
+            <div class="loop-step">
+              <div class="n">03</div>
+              <div class="h">Ship</div>
+              <div class="d"><code>/ship:ship</code> — commit and push the working version.</div>
+            </div>
+            <div class="loop-step">
+              <div class="n">04</div>
+              <div class="h">Repeat</div>
+              <div class="d">Move on to the next small thing. Begin again.</div>
+            </div>
+          </div>
+        </div>
+
+        <h3>When to actually run <code>/ship:ship</code></h3>
+        <ul>
+          <li><strong>Every time something works.</strong> Login screen renders? Ship. New button works? Ship. Bug fixed? Ship.</li>
+          <li><strong>Before you try something risky.</strong> About to ask Claude to refactor? Ship the working state first.</li>
+          <li><strong>End of every session.</strong> Closing the laptop = ship first. Future-you will thank you.</li>
+          <li><strong>Before switching machines.</strong> About to leave the desktop and continue on the laptop? Ship.</li>
+        </ul>
+
+        <h3>When <em>not</em> to ship</h3>
+        <ul>
+          <li>The change is half-finished and broken — finish or revert first.</li>
+          <li>You just added a real password or API key to a file by accident — remove it before shipping.</li>
+        </ul>
+
+        <p class="pull">
+          A working version, shipped, beats a perfect version, lost.
+          <cite>Rule №3</cite>
+        </p>
+
+        <div class="ask">
+          <div class="ask-label">Or just ask Claude</div>
+          <p>I just got the login screen working — save it and push to GitHub for me.</p>
+          <p>Ship my work.</p>
+          <span class="then">Claude runs <code>/ship:ship</code> (or commits + pushes by hand)</span>
+        </div>
+
+        <div class="ornament">
+          <span class="glyph">✦ ✦ ✦</span>
+          <span>END OF STAGE 04</span>
+          <span class="glyph">✦ ✦ ✦</span>
+        </div>
+      </div>
+
+      <aside class="stage-margin">
+        <div class="note">
+          <div class="label">Mental model</div>
+          <p>Treat each ship like a bookmark in a book. You'd rather have one every chapter than one for the whole book.</p>
+        </div>
+        <div class="note">
+          <div class="label tip">Frequency</div>
+          <p>Beginners ship too rarely, never too often. If you're unsure: ship.</p>
+        </div>
+        <div class="note">
+          <div class="label">No "good messages"</div>
+          <p>Don't agonize over the commit message. Claude's draft is fine. The point is the save existing, not its prose.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════  STAGE 05  ═══════════════════════════════ -->
+<section class="stage" id="s05">
+  <span class="stage-bg-num">05</span>
+  <div class="wrap">
+    <div class="stage-grid">
+      <div class="section-rubric">
+        <span class="num">05</span>
+        Pull
+        <span class="underline"></span>
+        <span class="pill">Multi-machine</span>
+      </div>
+      <div class="prose reveal">
+        <h2>Working from <em>another</em> machine</h2>
+        <p>
+          You started a project on the desktop. Now you're on the laptop in a coffee shop.
+          GitHub holds the latest version because past-you remembered to <code>/ship:ship</code>
+          before you left. Here's how to continue.
+        </p>
+
+        <h3>First time on a new machine</h3>
+        <ol>
+          <li>Install the three tools from <a href="#s00">Stage 00</a>.</li>
+          <li>Run <code>gh auth login</code> from <a href="#s01">Stage 01</a>.</li>
+          <li>Clone the project — that means: download the whole thing, with its journal, into a folder.</li>
+        </ol>
+        <div class="code">
+          <div class="code-head"><span>terminal · clone</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="prompt">$</span> gh repo clone your-username/my-cool-app
+<span class="prompt">$</span> cd my-cool-app
+<span class="prompt">$</span> claude</pre>
+        </div>
+
+        <h3>Every other time you sit down to work</h3>
+        <p>
+          Before you ask Claude to change anything, get the latest version from GitHub.
+          This is <code>git pull</code>. Do it as a reflex.
+        </p>
+        <div class="code">
+          <div class="code-head"><span>terminal · daily start</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="prompt">$</span> cd my-cool-app
+<span class="prompt">$</span> git pull
+<span class="out">Already up to date.</span>            <span class="cmt"># or — Updating abc123..def456 ...</span>
+
+<span class="prompt">$</span> claude                       <span class="cmt"># now start building</span></pre>
+        </div>
+
+        <p>The full multi-machine rhythm looks like this:</p>
+        <div class="loop-figure">
+          <div class="loop">
+            <div class="loop-step">
+              <div class="n">01</div>
+              <div class="h">Pull</div>
+              <div class="d">Start of session. <code>git pull</code>.</div>
+            </div>
+            <div class="loop-step">
+              <div class="n">02</div>
+              <div class="h">Build</div>
+              <div class="d">Work as usual with Claude.</div>
+            </div>
+            <div class="loop-step">
+              <div class="n">03</div>
+              <div class="h">Ship</div>
+              <div class="d">End of session. <code>/ship:ship</code>.</div>
+            </div>
+            <div class="loop-step">
+              <div class="n">04</div>
+              <div class="h">Switch</div>
+              <div class="d">Pick up on the next machine the same way.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="inline-callout" data-label="If pull complains">
+          <p>
+            If <code>git pull</code> says something about <em>"unmerged changes"</em> or refuses to run,
+            it means you have un-shipped work on this machine that conflicts with the version on GitHub.
+            Don't panic. The simplest fix: ask Claude — <em>"git pull is failing, please show me what's going on
+            and help me resolve it without losing work."</em> Claude can read the error and walk you through it.
+          </p>
+        </div>
+
+        <div class="ask">
+          <div class="ask-label">Or just ask Claude</div>
+          <p>Clone my GitHub project into this folder — the repo is «your-username/my-cool-app».</p>
+          <p>Pull the latest from GitHub before we start working.</p>
+          <span class="then">Claude runs <code>gh repo clone</code> or <code>git pull</code> in the right folder</span>
+        </div>
+
+        <div class="ornament">
+          <span class="glyph">✦ ✦ ✦</span>
+          <span>END OF STAGE 05</span>
+          <span class="glyph">✦ ✦ ✦</span>
+        </div>
+      </div>
+
+      <aside class="stage-margin">
+        <div class="note">
+          <div class="label">The golden rule</div>
+          <p><strong>Pull at the start. Ship at the end.</strong> Memorize this and most multi-machine pain disappears.</p>
+        </div>
+        <div class="note">
+          <div class="label tip">Same idea, two devices</div>
+          <p>It works the same way for desktop ⇄ laptop, your machine ⇄ a friend's, or you ⇄ future-you in six months.</p>
+        </div>
+        <div class="note">
+          <div class="label warn">Don't skip the pull</div>
+          <p>Skipping <code>git pull</code> is the №1 way beginners overwrite their own work. Make it muscle memory.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════  STAGE 06  ═══════════════════════════════ -->
+<section class="stage" id="s06">
+  <span class="stage-bg-num">06</span>
+  <div class="wrap">
+    <div class="stage-grid">
+      <div class="section-rubric">
+        <span class="num">06</span>
+        Branch
+        <span class="underline"></span>
+        <span class="pill">Risky moves</span>
+      </div>
+      <div class="prose reveal">
+        <h2>Branches, for when you want to <em>try</em> something</h2>
+        <p>
+          A branch is a parallel save file. Your project keeps a main timeline (called <code>main</code>),
+          and you can spin off a side timeline whenever you want to experiment without affecting
+          the working version. Think of it like clicking <em>"Save As: experiment.docx"</em> in Word —
+          the original document is untouched while you mess around with the copy. If the experiment
+          works, you copy the changes back. If it doesn't, you throw the experiment away and your
+          original is still pristine.
+        </p>
+
+        <h3>When to branch</h3>
+        <ul>
+          <li>Big rewrites or refactors that might leave the app broken for a while.</li>
+          <li>"What if we changed the whole color scheme" experiments.</li>
+          <li>A new feature that will take a few sessions to finish.</li>
+          <li>Anything you want a clean rollback from.</li>
+        </ul>
+
+        <h3>Where does <code>/ship:ship</code> send my work?</h3>
+        <p>
+          Whatever branch you're currently on. That's it. Shipping is "save and push <em>this</em>
+          branch," not "send to main." This is the whole reason branches are safe — main only
+          changes when you decide it does.
+        </p>
+        <ul>
+          <li><strong>Shipping while on main</strong> — <code>/ship:ship</code> updates main on GitHub. This is your usual day-to-day.</li>
+          <li><strong>Shipping while on a side branch</strong> — <code>/ship:ship</code> updates only that branch on GitHub. Main stays untouched until you merge.</li>
+        </ul>
+        <p>If you ever wonder where you are, ask:</p>
+
+        <div class="code">
+          <div class="code-head"><span>terminal · which branch?</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="prompt">$</span> git branch --show-current
+<span class="out">main</span>                          <span class="cmt"># shipping goes to main</span>
+
+<span class="cmt"># or, after creating a side branch:</span>
+<span class="prompt">$</span> git branch --show-current
+<span class="out">try-new-onboarding</span>           <span class="cmt"># shipping goes only to this branch</span></pre>
+        </div>
+
+        <p>
+          The takeaway: the <em>switch</em> is the decision; the <em>ship</em> just executes.
+          Want this change on main? Switch to main first, then ship. Want it isolated? Switch
+          to a branch first, then ship.
+        </p>
+
+        <h3>Make a branch and switch to it</h3>
+        <div class="code">
+          <div class="code-head"><span>terminal · branching</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="cmt"># confirm where you are</span>
+<span class="prompt">$</span> git status
+<span class="out">On branch main</span>
+<span class="out">nothing to commit, working tree clean</span>
+
+<span class="cmt"># create a new branch and jump onto it</span>
+<span class="prompt">$</span> git switch -c try-new-onboarding
+<span class="out">Switched to a new branch 'try-new-onboarding'</span>
+
+<span class="cmt"># now build with claude as usual, ship as usual</span>
+<span class="cmt"># /ship:ship will push the branch, not main</span></pre>
+        </div>
+
+        <h3>If the experiment worked → merge it</h3>
+        <p>
+          If you like the result, you merge the side timeline back into <code>main</code>.
+          The cleanest way is on github.com via a pull request, which gives you a chance to
+          look at every change before accepting it.
+        </p>
+        <div class="code">
+          <div class="code-head"><span>terminal · pull request</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="cmt"># open a pull request from your branch into main</span>
+<span class="prompt">$</span> gh pr create --fill
+
+<span class="cmt"># after reviewing it on github.com, merge it</span>
+<span class="prompt">$</span> gh pr merge --squash --delete-branch
+
+<span class="cmt"># return to main and grab the merged version</span>
+<span class="prompt">$</span> git switch main
+<span class="prompt">$</span> git pull</pre>
+        </div>
+
+        <h3>If the experiment failed → walk away</h3>
+        <p>
+          This is the magic. You don't have to undo anything. Just go back to main.
+          The branch still exists in case you want to revisit it later, but main is untouched.
+        </p>
+        <div class="code">
+          <div class="code-head"><span>terminal · abandon</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="prompt">$</span> git switch main
+<span class="out">Switched to branch 'main'</span>
+
+<span class="cmt"># your files are now back to the way main looks. nothing was lost.</span>
+<span class="cmt"># the side branch is still on github if you ever want it.</span></pre>
+        </div>
+
+        <p class="pull">
+          Branches are the fearlessness pattern. You can always come back.
+          <cite>Rule №4</cite>
+        </p>
+
+        <div class="ask">
+          <div class="ask-label">Or just ask Claude</div>
+          <p>I want to try a risky change. Make a new branch called «try-new-colors» and switch to it.</p>
+          <p>The experiment worked — open a pull request, merge it into main, and switch me back.</p>
+          <p>This experiment was a bust. Switch me back to main and leave the branch alone.</p>
+          <span class="then">Claude handles <code>git switch</code>, <code>gh pr create</code> &amp; <code>gh pr merge</code></span>
+        </div>
+
+        <div class="ornament">
+          <span class="glyph">✦ ✦ ✦</span>
+          <span>END OF STAGE 06</span>
+          <span class="glyph">✦ ✦ ✦</span>
+        </div>
+      </div>
+
+      <aside class="stage-margin">
+        <div class="note">
+          <div class="label">Naming branches</div>
+          <p>Lowercase, hyphens, descriptive: <code>add-login</code>, <code>try-new-colors</code>, <code>fix-mobile-nav</code>.</p>
+        </div>
+        <div class="note">
+          <div class="label tip">Don't pre-branch</div>
+          <p>You don't need a branch for every change. Reach for one when the change is risky, big, or unfinished. Small confident edits go straight to main.</p>
+        </div>
+        <div class="note">
+          <div class="label">Switch ≠ checkout</div>
+          <p>Older guides use <code>git checkout</code>. <code>git switch</code> is the modern, less-confusing version. Use that.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════  STAGE 07  ═══════════════════════════════ -->
+<section class="stage" id="s07">
+  <span class="stage-bg-num">07</span>
+  <div class="wrap">
+    <div class="stage-grid">
+      <div class="section-rubric">
+        <span class="num">07</span>
+        Recover
+        <span class="underline"></span>
+        <span class="pill">The safety net</span>
+      </div>
+      <div class="prose reveal">
+        <h2>Time travel <em>&amp; undo</em></h2>
+        <p>
+          Every commit you've ever made is a save point you can return to. This stage covers the
+          most common five flavors of "I want to go back" — from gentle to nuclear.
+        </p>
+
+        <h3>Just look at history</h3>
+        <p>See your last several saves with their messages.</p>
+        <div class="code">
+          <div class="code-head"><span>terminal · history</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="prompt">$</span> git log --oneline -10
+<span class="out">def4567</span> <span class="var">add password reset flow</span>
+<span class="out">abc1234</span> <span class="var">style the login button</span>
+<span class="out">9876fed</span> <span class="var">first working signup</span>
+<span class="out">...</span></pre>
+        </div>
+
+        <h3>Throw away unsaved changes to a single file</h3>
+        <p>You changed a file, regret it, and haven't shipped yet. Restore it to the last save.</p>
+        <div class="code">
+          <div class="code-head"><span>terminal · restore one file</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="prompt">$</span> git restore path/to/file.tsx</pre>
+        </div>
+
+        <h3>Throw away <em>all</em> unsaved changes</h3>
+        <p>The whole working state since the last commit, gone. Useful when an AI session went sideways.</p>
+        <div class="code">
+          <div class="code-head"><span>terminal · reset to last save</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="prompt">$</span> git restore .
+
+<span class="cmt"># or, if you also created new files you want gone:</span>
+<span class="prompt">$</span> git clean -fd</pre>
+        </div>
+
+        <h3>Roll the project back to an older save</h3>
+        <p>
+          You've shipped a few things, and a recent one made everything worse. You want to return
+          to a commit from earlier. Use <code>git revert</code>, which adds a <em>new</em> save that
+          undoes a previous one — non-destructive.
+        </p>
+        <div class="code">
+          <div class="code-head"><span>terminal · revert</span><span class="dots"><span></span><span></span><span></span></span></div>
+<pre><span class="cmt"># find the bad commit's hash from git log</span>
+<span class="prompt">$</span> git log --oneline -10
+<span class="out">def4567</span> <span class="var">broke everything</span>            <span class="cmt"># ← this one</span>
+<span class="out">abc1234</span> <span class="var">style the login button</span>
+
+<span class="cmt"># undo it with a new save (the safe way)</span>
+<span class="prompt">$</span> git revert def4567
+<span class="prompt">$</span> git push</pre>
+        </div>
+
+        <div class="inline-callout" data-label="Why revert, not reset">
+          <p>
+            <code>git revert</code> creates a new save that undoes the bad one — your history grows forward, never disappears.
+            <code>git reset --hard</code> deletes saves. For beginners, always revert. You will keep your sanity and your team
+            (or future-you) will keep their work.
+          </p>
+        </div>
+
+        <h3>Just ask Claude</h3>
+        <p>
+          The best safety net is the assistant sitting next to you. If something is broken and you don't
+          know which lever to pull, paste the error or the situation into Claude and say
+          <em>"I need to get back to a working state without losing too much. What are my options?"</em>
+          Claude can read your <code>git status</code> and your <code>git log</code> and pick the
+          right tool — usually one of the four above.
+        </p>
+
+        <p class="pull">
+          The work isn't really gone unless you typed <code>--force</code>.
+          <cite>Rule №5</cite>
+        </p>
+
+        <div class="ask">
+          <div class="ask-label">Or just ask Claude</div>
+          <p>Show me git status and the last 10 commits, then suggest the safest way to get back to a working state.</p>
+          <p>Throw away every unsaved change since my last commit.</p>
+          <p>Undo the commit «def4567» without losing anything else.</p>
+          <span class="then">Claude reads the situation and picks <code>restore</code>, <code>revert</code>, or asks first</span>
+        </div>
+
+        <div class="ornament">
+          <span class="glyph">✦ ✦ ✦</span>
+          <span>END OF STAGE 07</span>
+          <span class="glyph">✦ ✦ ✦</span>
+        </div>
+      </div>
+
+      <aside class="stage-margin">
+        <div class="note">
+          <div class="label warn">Avoid by default</div>
+          <p>Until you're comfortable: never run <code>git push --force</code>, <code>git reset --hard</code>, or anything ending in <code>-f</code>. They are the rare commands that <em>can</em> destroy your work.</p>
+        </div>
+        <div class="note">
+          <div class="label tip">Your strongest move</div>
+          <p>"Show me <code>git status</code> and <code>git log --oneline -10</code>, then suggest the safest path." — paste this into Claude any time you're stuck.</p>
+        </div>
+        <div class="note">
+          <div class="label">Also good</div>
+          <p>GitHub keeps everything you've pushed. Even a deleted local folder is recoverable if you'd shipped it.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════  CHEAT SHEET  ═══════════════════════════════ -->
+<section class="cheat" id="cheat">
+  <div class="wrap">
+    <div class="cheat-head">
+      <h2>The <em>cheat</em><br/>sheet.</h2>
+      <div class="meta">
+        <span>Tear out · pin to wall</span>
+        <span class="accent">Forget the rest</span>
+        <span>v 01 · 2026</span>
+      </div>
+    </div>
+
+    <div class="cheat-cat"><span class="num">i.</span> Once per machine</div>
+    <div class="cheat-grid">
+      <div class="cheat-cell">
+        <div class="cmd">npm install -g @anthropic-ai/claude-code</div>
+        <div class="desc">Install Claude Code globally. Run <code>claude</code> in any project folder to start.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">brew install gh   <span style="opacity:0.5">·</span>   sudo apt install gh</div>
+        <div class="desc">Install the GitHub CLI. One of these will work for your OS.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">gh auth login</div>
+        <div class="desc">Sign in to GitHub from this terminal. Browser opens, you click "approve," done.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">git config --global user.name "..."</div>
+        <div class="desc">Stamp your name on every save. Set <code>user.email</code> the same way.</div>
+      </div>
+    </div>
+
+    <div class="cheat-cat"><span class="num">ii.</span> Start a project</div>
+    <div class="cheat-grid">
+      <div class="cheat-cell">
+        <div class="cmd">gh repo create name --private --clone</div>
+        <div class="desc">Brand-new project. Creates the repo on GitHub and clones it locally in one step.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">gh repo create --source=. --private --push</div>
+        <div class="desc">Have a folder already? Adopt it: makes a GitHub repo from your current folder and pushes everything.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">gh repo clone user/name</div>
+        <div class="desc">Download an existing project to a new machine.</div>
+      </div>
+    </div>
+
+    <div class="cheat-cat"><span class="num">iii.</span> In Claude Code</div>
+    <div class="cheat-grid">
+      <div class="cheat-cell">
+        <div class="cmd">/plugin marketplace add mikersays/mikersays-plugins</div>
+        <div class="desc">Add the plugin marketplace, once.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">/plugin install ship@mikersays-plugins</div>
+        <div class="desc">Install the <code>/ship:ship</code> command, once.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">/ship:ship</div>
+        <div class="desc">Save and upload all your changes to GitHub. Run after anything that works.</div>
+      </div>
+    </div>
+
+    <div class="cheat-cat"><span class="num">iv.</span> Daily</div>
+    <div class="cheat-grid">
+      <div class="cheat-cell">
+        <div class="cmd">git pull</div>
+        <div class="desc">Start of every session. Get whatever the other machine pushed last.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">git status</div>
+        <div class="desc">Show what changed since the last save and what branch you're on. Free, harmless, run any time.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">git log --oneline -10</div>
+        <div class="desc">Show your last ten saves with their messages.</div>
+      </div>
+    </div>
+
+    <div class="cheat-cat"><span class="num">v.</span> Branches</div>
+    <div class="cheat-grid">
+      <div class="cheat-cell">
+        <div class="cmd">git switch -c name-of-branch</div>
+        <div class="desc">Make a new parallel save file and jump to it. Useful before a risky change.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">git switch main</div>
+        <div class="desc">Jump back to the main timeline. Your branch is still there, untouched.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">gh pr create --fill</div>
+        <div class="desc">Open a pull request from your branch into main, ready to review and merge on GitHub.</div>
+      </div>
+    </div>
+
+    <div class="cheat-cat"><span class="num">vi.</span> Undo (safe)</div>
+    <div class="cheat-grid">
+      <div class="cheat-cell">
+        <div class="cmd">git restore path/to/file</div>
+        <div class="desc">Throw away unsaved changes to one file. Restores it to the last save.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">git restore .</div>
+        <div class="desc">Throw away unsaved changes to <em>everything</em>. The last save remains.</div>
+      </div>
+      <div class="cheat-cell">
+        <div class="cmd">git revert &lt;commit&gt;</div>
+        <div class="desc">Undo a previous save by adding a new save that reverses it. Non-destructive.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════  PLAIN ENGLISH  ═══════════════════════════════ -->
+<section class="plain" id="plain">
+  <div class="wrap">
+    <div class="plain-head">
+      <div class="label">Plain English</div>
+      <h2>If you'd rather just <em>talk.</em></h2>
+    </div>
+
+    <p style="max-width: 64ch; margin: 0 0 32px; font-size: 18px; line-height: 1.55; color: var(--ink-soft);">
+      Every command in the cheat sheet has an English version. Paste any of these into Claude
+      Code while you're inside your project — Claude reads the situation and runs the right
+      thing for you. The exact wording doesn't matter; the meaning does.
+    </p>
+
+    <div class="plain-cat"><span class="num">i.</span> Setting up a new machine</div>
+
+    <div class="plain-row">
+      <div class="plain-say">Set up git on this machine with my name «Your Name» and email «you@example.com».</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>git config --global user.name "..."</code> and <code>user.email</code>
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">Help me sign in to GitHub from this terminal.</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>gh auth login</code> — Claude walks you through the prompts
+      </div>
+    </div>
+
+    <div class="plain-cat"><span class="num">ii.</span> Starting projects</div>
+
+    <div class="plain-row">
+      <div class="plain-say">Start a brand-new private GitHub project called «my-cool-app» and clone it here.</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>gh repo create my-cool-app --private --clone</code>
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">This folder already has my project. Make it a private GitHub repo and push everything.</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>gh repo create --source=. --private --push</code>
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">Clone my GitHub project «your-username/my-cool-app» into this folder.</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>gh repo clone your-username/my-cool-app</code>
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">Generate a sensible .gitignore for this project before we make the first commit.</div>
+      <div class="plain-does">
+        <span class="head">What happens</span>
+        Claude reads your stack and writes a tailored <code>.gitignore</code>
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">I accidentally committed my .env file. Help me untrack it and add a proper .gitignore.</div>
+      <div class="plain-does">
+        <span class="head">What happens</span>
+        Claude removes the file from tracking, updates <code>.gitignore</code>, and reminds you to rotate the secret
+      </div>
+    </div>
+
+    <div class="plain-cat"><span class="num">iii.</span> Saving &amp; shipping</div>
+
+    <div class="plain-row">
+      <div class="plain-say">I just got the login screen working — save and ship it.</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>/ship:ship</code> — commits everything and pushes to GitHub
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">Ship my work.</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>/ship:ship</code>
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">What's changed since my last save?</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>git status</code> and <code>git diff</code>, summarized in plain English
+      </div>
+    </div>
+
+    <div class="plain-cat"><span class="num">iv.</span> Multi-machine</div>
+
+    <div class="plain-row">
+      <div class="plain-say">Pull the latest from GitHub before we start working.</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>git pull</code>
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">git pull is failing — show me what's going on and help me resolve it without losing work.</div>
+      <div class="plain-does">
+        <span class="head">What happens</span>
+        Claude reads the conflict and walks you through a safe resolution
+      </div>
+    </div>
+
+    <div class="plain-cat"><span class="num">v.</span> Branches</div>
+
+    <div class="plain-row">
+      <div class="plain-say">Show me which branch I'm currently on — where will /ship:ship send my work?</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>git branch --show-current</code>
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">I want to try a risky change. Make a branch called «try-new-colors» and switch to it.</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>git switch -c try-new-colors</code>
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">The experiment worked — open a pull request, merge it into main, and switch me back.</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>gh pr create --fill</code>, <code>gh pr merge --squash --delete-branch</code>, <code>git switch main</code>
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">This experiment was a bust. Switch me back to main and leave the branch alone.</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>git switch main</code> — branch stays on GitHub if you ever want it
+      </div>
+    </div>
+
+    <div class="plain-cat"><span class="num">vi.</span> Undo &amp; recover</div>
+
+    <div class="plain-row">
+      <div class="plain-say">Show me git status and the last 10 commits, then suggest the safest way to get back to a working state.</div>
+      <div class="plain-does">
+        <span class="head">What happens</span>
+        Claude reads everything and proposes the right undo path
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">Throw away my unsaved changes to «path/to/file.tsx».</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>git restore path/to/file.tsx</code>
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">Throw away every unsaved change since my last commit.</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>git restore .</code> — and <code>git clean -fd</code> if there are new files too
+      </div>
+    </div>
+    <div class="plain-row">
+      <div class="plain-say">Undo the commit «def4567» without losing anything else.</div>
+      <div class="plain-does">
+        <span class="head">What runs</span>
+        <code>git revert def4567 &amp;&amp; git push</code>
+      </div>
+    </div>
+
+    <div class="plain-tail">
+      <p style="margin: 0;">
+        <strong>The single prompt that gets you out of almost anything:</strong>
+        <em>"Read my git status and recent log, then walk me through the safest next step."</em>
+        Memorize this one. It's the master key.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════  FAQ  ═══════════════════════════════ -->
+<section class="faq" id="faq">
+  <div class="wrap">
+    <div class="faq-head">
+      <div class="label">Field notes</div>
+      <h2>Things that <em>seem</em> wrong but aren't</h2>
+    </div>
+
+    <details>
+      <summary>
+        <span class="q-num">№01</span>
+        <span class="q-text">I shipped, then realized the change was bad. Did I lose the old version?</span>
+        <span class="toggle">+</span>
+      </summary>
+      <div>
+        <p>
+          No. Every previous save is still in <code>git log</code>. Use <code>git revert &lt;commit&gt;</code>
+          (Stage 07) to add a new save that undoes the bad one. Your history grows forward.
+        </p>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <span class="q-num">№02</span>
+        <span class="q-text">Should I learn the deeper git commands eventually?</span>
+        <span class="toggle">+</span>
+      </summary>
+      <div>
+        <p>
+          Eventually, sure. There's an entire universe of <code>rebase</code>, <code>cherry-pick</code>,
+          <code>stash</code>, <code>bisect</code>, and so on. <em>You don't need them to ship.</em>
+          Most professionals get by with what's in this guide plus two or three more commands they
+          looked up the day they needed them. Build the habit first; learn the side-quests when one of them blocks you.
+        </p>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <span class="q-num">№03</span>
+        <span class="q-text">My project has secrets in a file. Can I still push?</span>
+        <span class="toggle">+</span>
+      </summary>
+      <div>
+        <p>
+          Move the secrets out first. Create a file called <code>.env</code> that contains your secrets,
+          then create a file called <code>.gitignore</code> at the root of your project with a single
+          line: <code>.env</code>. That tells git to never include that file in saves. Then ship.
+        </p>
+        <p>
+          If you already pushed a secret by accident: rotate the secret immediately (i.e., change it
+          on whatever service issued it). Removing it from history is harder than rotating, so save
+          your future self the time and just rotate.
+        </p>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <span class="q-num">№04</span>
+        <span class="q-text">Why do I keep seeing "main" — I thought it was "master"?</span>
+        <span class="toggle">+</span>
+      </summary>
+      <div>
+        <p>
+          GitHub renamed the default branch from <code>master</code> to <code>main</code> a few years back.
+          Modern projects use <code>main</code>. Older ones still use <code>master</code>. They mean the same thing.
+          The <code>git config --global init.defaultBranch main</code> line in Stage 01 makes sure all your new
+          projects start with <code>main</code>.
+        </p>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <span class="q-num">№05</span>
+        <span class="q-text">What's the difference between <code>git pull</code> and <code>git fetch</code>?</span>
+        <span class="toggle">+</span>
+      </summary>
+      <div>
+        <p>
+          <code>git fetch</code> downloads new saves from GitHub but doesn't apply them to your files.
+          <code>git pull</code> downloads <em>and</em> applies. For everything in this guide, you want
+          <code>git pull</code>. Forget <code>fetch</code> until you have a reason to remember it.
+        </p>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <span class="q-num">№06</span>
+        <span class="q-text">Claude added 200 files I didn't expect. Should I ship them?</span>
+        <span class="toggle">+</span>
+      </summary>
+      <div>
+        <p>
+          Probably they're <code>node_modules/</code>, build artifacts, or caches that don't belong in git.
+          Add a <code>.gitignore</code> with the right patterns first — most frameworks have a standard one
+          (try <a href="https://github.com/github/gitignore" target="_blank" rel="noopener">github/gitignore</a>).
+          Or just ask: <em>"Generate a sensible .gitignore for this project."</em> Claude will read your
+          stack and make the right one.
+        </p>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <span class="q-num">№07</span>
+        <span class="q-text">I'm scared. What if I run the wrong command and break everything?</span>
+        <span class="toggle">+</span>
+      </summary>
+      <div>
+        <p>
+          The everyday commands in this guide cannot lose work that you've shipped. The dangerous ones
+          all involve the words <code>--force</code>, <code>--hard</code>, or <code>-f</code>. Avoid those
+          for now and you have a near-perfect safety net.
+        </p>
+        <p>
+          When in doubt, run <code>git status</code>. It tells you exactly where you are and what would
+          change. It cannot do harm. Run it as often as you want.
+        </p>
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <span class="q-num">№08</span>
+        <span class="q-text">Do I really need branches if I'm working alone?</span>
+        <span class="toggle">+</span>
+      </summary>
+      <div>
+        <p>
+          Not for everyday work. Ship to <code>main</code> as you go. Reach for a branch only when you
+          want a clean rollback for something experimental. Solo developers using AI assistants often
+          go weeks at a time without making a branch, and that's fine.
+        </p>
+      </div>
+    </details>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════  FOOTER  ═══════════════════════════════ -->
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <p class="footer-mark">
+        Now go<br/><em>ship</em>.
+      </p>
+
+      <!-- the rubber stamp -->
+      <div class="stamp" aria-hidden="true">
+        <svg viewBox="0 0 168 168" fill="none" stroke="currentColor" stroke-width="1.4">
+          <circle cx="84" cy="84" r="78" />
+          <circle cx="84" cy="84" r="70" stroke-dasharray="2 3" opacity="0.55" />
+          <circle cx="84" cy="84" r="58" />
+          <path d="M14 84 L26 84 M142 84 L154 84 M84 14 L84 26 M84 142 L84 154" />
+          <defs>
+            <path id="cText" d="M84 84 m -64 0 a 64 64 0 1 1 128 0 a 64 64 0 1 1 -128 0" />
+          </defs>
+          <text font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="2" fill="currentColor" stroke="none">
+            <textPath href="#cText" startOffset="0%">FIELD-TESTED · SHIPPED · APPROVED FOR DAILY USE · </textPath>
+          </text>
+        </svg>
+        <div class="stamp-text">
+          <span>★</span>
+          <span class="big">ship</span>
+          <span>v · 01</span>
+        </div>
+      </div>
+
+      <div class="footer-meta">
+        <div class="head">Further reading</div>
+        <div><a href="https://mikersays.github.io/mikersays-plugins/" target="_blank" rel="noopener">mikersays-plugins ↗</a></div>
+        <div><a href="https://cli.github.com" target="_blank" rel="noopener">cli.github.com ↗</a></div>
+        <div><a href="https://docs.github.com/en/get-started/using-git" target="_blank" rel="noopener">git, when you want more ↗</a></div>
+        <div><a href="https://docs.claude.com/en/docs/claude-code" target="_blank" rel="noopener">claude code docs ↗</a></div>
+      </div>
+    </div>
+
+    <div class="footer-fine">
+      <span>FIELD GUIDE №01 · for builders who use Claude</span>
+      <span>set in Fraunces, Newsreader & JetBrains Mono</span>
+      <span>made for makers</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ──── scroll progress bar ────────────────────────────────────────────
+(function () {
+  var bar = document.getElementById('progress');
+  function update() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    var pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+    bar.style.setProperty('--p', pct.toFixed(2) + '%');
+  }
+  document.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+
+// ──── reveal-on-scroll for prose blocks ──────────────────────────────
+(function () {
+  if (!('IntersectionObserver' in window)) {
+    document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.05 });
+  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+})();
+</script>
+
+</body>
+</html>
