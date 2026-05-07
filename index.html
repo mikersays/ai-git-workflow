@@ -944,6 +944,117 @@ code {
 }
 
 /* ════════════════════════════════════════════════════════════════
+   MARKETPLACE CARD — "available from" callout
+   ════════════════════════════════════════════════════════════════ */
+
+.marketplace-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 36px;
+  align-items: center;
+  margin: 8px 0 36px;
+  padding: 28px 30px 24px;
+  background: var(--paper-deep);
+  border: 1px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--paper-edge);
+  position: relative;
+}
+.marketplace-card::before {
+  content: "✦ AVAILABLE FROM ✦";
+  position: absolute;
+  top: -10px; left: 16px;
+  background: var(--paper);
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  color: var(--rust);
+  font-weight: 600;
+}
+.marketplace-card::after {
+  content: "v.01";
+  position: absolute;
+  top: -10px; right: 18px;
+  background: var(--paper);
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--ink-fade);
+}
+.mc-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mc-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+}
+.mc-name {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-weight: 300;
+  font-size: 36px;
+  letter-spacing: -0.022em;
+  color: var(--rust);
+  margin: 0;
+  line-height: 1;
+}
+.mc-url {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  display: inline-block;
+  align-self: flex-start;
+  padding: 1px 0;
+  border-bottom: 1px dotted var(--line-strong);
+  transition: color 0.15s, border-color 0.15s;
+}
+.mc-url:hover { color: var(--rust); border-color: var(--rust); }
+
+.mc-cmd {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: right;
+}
+.mc-cmd-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-fade);
+}
+.mc-cmd-line {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: var(--ink);
+  color: var(--gold);
+  padding: 9px 14px;
+  border: 1px solid var(--ink);
+  letter-spacing: 0;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+@media (max-width: 880px) {
+  .marketplace-card {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding: 30px 24px 24px;
+  }
+  .mc-cmd { text-align: left; }
+  .mc-cmd-line { white-space: normal; word-break: break-word; }
+}
+
+/* ════════════════════════════════════════════════════════════════
    ASK CLAUDE — plain-English prompt callouts
    ════════════════════════════════════════════════════════════════ */
 
@@ -2334,6 +2445,21 @@ npm-debug.log*</pre>
       </div>
       <div class="prose reveal">
         <h2>Install <em>/ship:ship</em></h2>
+
+        <aside class="marketplace-card">
+          <div class="mc-meta">
+            <span class="mc-eyebrow">The plugin used in this guide</span>
+            <h4 class="mc-name">mikersays-plugins</h4>
+            <a class="mc-url" href="https://mikersays.github.io/mikersays-plugins/" target="_blank" rel="noopener">
+              mikersays.github.io/mikersays-plugins ↗
+            </a>
+          </div>
+          <div class="mc-cmd">
+            <span class="mc-cmd-label">Install in Claude Code</span>
+            <code class="mc-cmd-line">/plugin marketplace add mikersays/mikersays-plugins</code>
+          </div>
+        </aside>
+
         <p>
           Now we hand the plumbing of git over to Claude. <code>/ship:ship</code> is a slash
           command from the
