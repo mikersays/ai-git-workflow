@@ -1814,7 +1814,7 @@ footer {
     <div class="masthead-row">
       <div class="left">
         <span class="vol">FIELD GUIDE №01</span>
-        <span class="hide-mobile">FOR BUILDERS WHO USE CLAUDE</span>
+        <span class="hide-mobile">FOR SOLO BUILDERS WHO USE CLAUDE</span>
       </div>
       <div class="right">
         <a href="#prologue">Prologue</a>
@@ -1845,14 +1845,14 @@ footer {
     <h1>
       Keep your<br />
       <span class="it">work.</span>
-      <span class="small">a field guide to <em>git</em> for people who build with Claude Code</span>
+      <span class="small">a field guide to <em>git</em> for solo builders who code with Claude</span>
     </h1>
     <div class="hero-deck">
       <p class="hero-lede">
-        <span class="first">Y</span>ou don't need to learn all of git.
-        You need just enough to never lose a working version, try risky changes
-        without fear, and pick up your project on a different machine like nothing happened.
-        <em>That</em> is what this guide gives you, and nothing more.
+        <span class="first">Y</span>ou're building solo. No team, no pull-request meetings, no
+        one else's commits to merge. You don't need to learn all of git — you need just enough
+        to never lose a working version, try risky changes without fear, and pick up your project
+        on another machine like nothing happened. <em>That</em> is what this guide gives you.
       </p>
       <dl class="hero-meta">
         <dt>Reading time</dt>
@@ -1861,8 +1861,10 @@ footer {
         <dd>A laptop. A GitHub account. Curiosity.</dd>
         <dt>You'll leave with</dt>
         <dd>A repo, a habit, a safety net.</dd>
+        <dt>Audience</dt>
+        <dd>Solo builders. One person, possibly several machines.</dd>
         <dt>What this isn't</dt>
-        <dd>A complete reference. Skip the rabbit holes.</dd>
+        <dd>A team workflow guide. No PR rituals here.</dd>
       </dl>
     </div>
   </div>
@@ -2000,6 +2002,25 @@ footer {
             <p>A copy of that journal living on a server. Your backup. The thing other machines can pull from.</p>
           </div>
         </div>
+
+        <h3>Why git, when it's just you?</h3>
+        <p>
+          Most explanations of git are written for teams — pull requests, code review, merging
+          someone else's branch. None of that applies to you. So why bother? The honest,
+          solo-builder version:
+        </p>
+        <ol>
+          <li><strong>Yesterday-you is a stranger.</strong> When something works today, breaks tomorrow, and you can't quite remember what changed in between — that's the gap git closes.</li>
+          <li><strong>AI changes a lot, fast.</strong> Claude can edit thirty files in a single session. Without saves between them, you can't see what changed or undo it surgically. With saves, you can.</li>
+          <li><strong>You <em>are</em> the team.</strong> Laptop at home, laptop at the coffee shop, desktop at work — they all need to stay in sync with each other. GitHub is how you collaborate with yourself.</li>
+          <li><strong>GitHub is your backup.</strong> Spilled coffee, dead drive, accidental delete — without it, months of work disappear. With it, <code>gh repo clone</code> on any machine and you're back in thirty seconds.</li>
+          <li><strong>Future-you needs context.</strong> Coming back to a project after three months? The commit messages are notes from past-you to present-you. Skip them and every return is a cold start.</li>
+          <li><strong>Confidence to experiment.</strong> Knowing you can always go back lets you try things you wouldn't otherwise try. Solo builders ship more when they're unafraid.</li>
+        </ol>
+        <p>
+          None of these reasons require a teammate. All of them are reasons the eight stages
+          below are worth twenty minutes of your time.
+        </p>
 
         <p>
           When you "save" with git, you're really doing two motions: <strong>commit</strong>
